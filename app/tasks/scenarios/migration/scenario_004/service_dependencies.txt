@@ -1,0 +1,8 @@
+Service Dependency Map
+=====================
+
+auth_service -> users (read/write), sessions (read/write)
+pricing_service -> products (read: old_price, current_price)
+audit_service -> audit_log (write), sessions (read via FK)
+catalog_service -> products (read/write: old_price, current_price, category_id)
+notification_service -> users (read: email)

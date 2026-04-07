@@ -1,0 +1,52 @@
+{
+    "scenario_id": "migration_002",
+    "description": "Profile restructuring — review migrations renaming columns and adding constraints on a 5.2M-row profiles table under zero-downtime blue-green deployment",
+    "review_checklist": [
+        "Check for NOT NULL columns added without DEFAULT values on large tables",
+        "Verify indexes are created with CONCURRENTLY on large tables",
+        "Check if dropped or renamed columns are still referenced by application code",
+        "Verify migration ordering and dependencies",
+        "Check for lock-heavy operations on high-traffic tables",
+        "Consider the deployment strategy (rolling/blue-green) and downtime budget"
+    ],
+    "initial_files": ["schema.sql", "migration_001.sql", "migration_002.sql"],
+    "available_files": ["context.json", "app_context.py"],
+    "ground_truth": [
+        {
+            "file": "migration_001.sql",
+            "line": 4,
+            "rule_id": "MIG-004",
+            "severity": "critical",
+            "description": "Renaming username to handle breaks feed_service and search_service which still query profiles.username directly. In a blue-green deployment, old instances will fail immediately after the rename.",
+            "match_key": "rename_column|profiles.username",
+            "category": "rename_column_breaking"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 6,
+            "rule_id": "MIG-005",
+            "severity": "high",
+            "description": "Changing display_name from VARCHAR(100) to VARCHAR(255) requires a full table rewrite with ACCESS EXCLUSIVE lock on 5.2M rows, blocking all reads and writes.",
+            "match_key": "alter_type|profiles.display_name",
+            "category": "type_change_rewrite"
+        },
+        {
+            "file": "migration_002.sql",
+            "line": 5,
+            "rule_id": "MIG-001",
+            "severity": "critical",
+            "description": "Adding NOT NULL column is_verified without a DEFAULT on a 5.2M-row table causes a full table rewrite with ACCESS EXCLUSIVE lock, blocking all reads and writes.",
+            "match_key": "add_column|profiles.is_verified",
+            "category": "not_null_without_default"
+        },
+        {
+            "file": "migration_002.sql",
+            "line": 9,
+            "rule_id": "MIG-007",
+            "severity": "high",
+            "description": "The column rename in migration_001 combined with a new index in migration_002 does not follow the expand-migrate-contract pattern. The old index gets silently renamed, creating a duplicate, while dependent services still reference the old column name.",
+            "match_key": "missing_pattern|profiles.username_to_handle",
+            "category": "missing_expand_migrate_contract"
+        }
+    ]
+}

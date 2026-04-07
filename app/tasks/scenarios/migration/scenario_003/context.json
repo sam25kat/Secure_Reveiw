@@ -1,0 +1,27 @@
+{
+    "tables": {
+        "orders": {
+            "row_count": 8500000,
+            "avg_writes_per_second": 500,
+            "avg_reads_per_second": 2000,
+            "read_replicas": 2
+        },
+        "order_items": {
+            "row_count": 25000000,
+            "avg_writes_per_second": 1500,
+            "avg_reads_per_second": 4000,
+            "read_replicas": 2
+        },
+        "products": {
+            "row_count": 150000,
+            "avg_writes_per_second": 10,
+            "avg_reads_per_second": 20000,
+            "read_replicas": 2
+        }
+    },
+    "deployment_strategy": "rolling",
+    "downtime_budget": "zero",
+    "dependent_services": ["checkout_service", "inventory_service", "analytics_service"],
+    "database_engine": "PostgreSQL 15",
+    "migration_tool": "custom SQL runner"
+}

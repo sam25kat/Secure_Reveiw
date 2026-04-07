@@ -1,0 +1,51 @@
+{
+    "scenario_id": "iac_001",
+    "description": "Basic AWS web application with EC2, RDS, and S3",
+    "review_checklist": [
+        "Check for public access to storage resources",
+        "Verify encryption at rest and in transit",
+        "Check IAM policies for least privilege",
+        "Verify logging and monitoring configuration",
+        "Check network security group rules"
+    ],
+    "initial_files": ["main.tf", "variables.tf"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "main.tf",
+            "line": 37,
+            "rule_id": "IAC-002",
+            "severity": "high",
+            "description": "S3 bucket 'app-data-prod' missing server-side encryption configuration",
+            "match_key": "aws_s3_bucket.app_data|encryption_at_rest",
+            "category": "encryption_at_rest"
+        },
+        {
+            "file": "main.tf",
+            "line": 46,
+            "rule_id": "IAC-001",
+            "severity": "critical",
+            "description": "S3 bucket policy allows public access with Principal '*'",
+            "match_key": "aws_s3_bucket_policy.app_data_policy|public_access",
+            "category": "public_access"
+        },
+        {
+            "file": "main.tf",
+            "line": 63,
+            "rule_id": "IAC-004",
+            "severity": "critical",
+            "description": "Security group allows SSH (port 22) from 0.0.0.0/0",
+            "match_key": "aws_security_group.web_sg|permissive_security_group",
+            "category": "permissive_security_group"
+        },
+        {
+            "file": "main.tf",
+            "line": 117,
+            "rule_id": "IAC-002",
+            "severity": "high",
+            "description": "RDS instance 'app-db' has storage_encrypted set to false",
+            "match_key": "aws_db_instance.app_db|encryption_at_rest",
+            "category": "encryption_at_rest"
+        }
+    ]
+}

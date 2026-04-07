@@ -1,0 +1,51 @@
+{
+    "scenario_id": "dep_002",
+    "description": "Data science stack with ML and visualization dependencies",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on PyPI",
+        "Check for known CVEs in pinned versions",
+        "Look for deprecated packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["requirements.txt"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "requirements.txt",
+            "line": 6,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'scikitlearn' is a misspelling of the popular 'scikit-learn' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "scikitlearn",
+            "category": "typosquat"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 15,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'pandas-utils' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "pandas-utils",
+            "category": "hallucinated"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 16,
+            "rule_id": "DEP-004",
+            "severity": "high",
+            "description": "pillow 9.3.0 has CVE-2023-44271: denial of service vulnerability via crafted image that causes uncontrolled resource consumption.",
+            "match_key": "pillow",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 18,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'tensorflw' is a misspelling of the popular 'tensorflow' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "tensorflw",
+            "category": "typosquat"
+        }
+    ]
+}

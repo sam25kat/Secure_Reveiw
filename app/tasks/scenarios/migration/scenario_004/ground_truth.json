@@ -1,0 +1,70 @@
+{
+    "scenario_id": "migration_004",
+    "description": "Schema cleanup — review three migration scripts dropping tables, renaming columns, and adding constraints across users (3.2M rows) and products (20M rows) tables with 4 dependent services",
+    "review_checklist": [
+        "Check for NOT NULL columns added without DEFAULT values on large tables",
+        "Verify indexes are created with CONCURRENTLY on large tables",
+        "Check if dropped or renamed columns are still referenced by application code",
+        "Verify migration ordering and dependencies",
+        "Check for lock-heavy operations on high-traffic tables",
+        "Consider the deployment strategy (rolling/blue-green) and downtime budget"
+    ],
+    "initial_files": ["schema.sql", "migration_001.sql", "migration_002.sql", "migration_003.sql"],
+    "available_files": ["context.json", "app_context.py", "service_dependencies.txt"],
+    "ground_truth": [
+        {
+            "file": "migration_001.sql",
+            "line": 5,
+            "rule_id": "MIG-009",
+            "severity": "critical",
+            "description": "Dropping sessions table will fail due to audit_log.session_id FK reference. If forced, it orphans up to 150M audit_log records. audit_service and auth_service still actively read/write to sessions.",
+            "match_key": "drop_table|sessions",
+            "category": "drop_table_with_fk"
+        },
+        {
+            "file": "migration_002.sql",
+            "line": 4,
+            "rule_id": "MIG-004",
+            "severity": "critical",
+            "description": "Renaming old_price to legacy_price breaks pricing_service and catalog_service which query products.old_price directly. At 50,000 reads/sec this causes widespread failures.",
+            "match_key": "rename_column|products.old_price",
+            "category": "rename_column_breaking"
+        },
+        {
+            "file": "migration_002.sql",
+            "line": 6,
+            "rule_id": "MIG-001",
+            "severity": "critical",
+            "description": "Adding NOT NULL column sku without a DEFAULT on a 20M-row products table causes a full table rewrite with ACCESS EXCLUSIVE lock, blocking 50,000 reads/sec and all writes.",
+            "match_key": "add_column|products.sku",
+            "category": "not_null_without_default"
+        },
+        {
+            "file": "migration_002.sql",
+            "line": 8,
+            "rule_id": "MIG-002",
+            "severity": "high",
+            "description": "Creating index without CONCURRENTLY on a 20M-row products table acquires a SHARE lock, blocking all writes for the duration of the index build.",
+            "match_key": "create_index|products.sku",
+            "category": "non_concurrent_index"
+        },
+        {
+            "file": "migration_003.sql",
+            "line": 4,
+            "rule_id": "MIG-001",
+            "severity": "high",
+            "description": "Adding NOT NULL column preferences (JSONB) without a DEFAULT on a 3.2M-row users table causes a full table rewrite. Use DEFAULT '{}' for a metadata-only operation in PostgreSQL 11+.",
+            "match_key": "add_column|users.preferences",
+            "category": "not_null_without_default"
+        },
+        {
+            "file": "migration_003.sql",
+            "line": 6,
+            "rule_id": "MIG-005",
+            "severity": "high",
+            "description": "Changing email from VARCHAR(255) to TEXT triggers a full table rewrite with ACCESS EXCLUSIVE lock on 3.2M rows, blocking all reads and writes to the users table.",
+            "match_key": "alter_type|users.email",
+            "category": "type_change_rewrite"
+        }
+    ]
+}

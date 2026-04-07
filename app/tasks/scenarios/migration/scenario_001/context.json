@@ -1,0 +1,21 @@
+{
+    "tables": {
+        "users": {
+            "row_count": 12000000,
+            "avg_writes_per_second": 150,
+            "avg_reads_per_second": 3000,
+            "read_replicas": 2
+        },
+        "user_sessions": {
+            "row_count": 45000000,
+            "avg_writes_per_second": 500,
+            "avg_reads_per_second": 8000,
+            "read_replicas": 2
+        }
+    },
+    "deployment_strategy": "rolling",
+    "downtime_budget": "zero",
+    "dependent_services": ["auth_service", "notification_service", "user_profile_service"],
+    "database_engine": "PostgreSQL 15",
+    "migration_tool": "custom SQL runner"
+}

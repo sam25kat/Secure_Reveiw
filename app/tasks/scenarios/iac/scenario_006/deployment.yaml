@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: production
+  labels:
+    app: payment-service
+    version: v2.3.1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        version: v2.3.1
+    spec:
+      containers:
+        - name: payment-api
+          image: registry.internal.io/payment-service:v2.3.1
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              value: "postgres.production.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USERNAME
+              value: "payment_svc"
+            - name: DB_PASSWORD
+              value: "s3cureP@ssw0rd!2024"
+            - name: STRIPE_API_KEY
+              value: "sk_live_4eC39HqLyjWDarjtT1zdp7dc"
+            - name: JWT_SECRET
+              value: "myapp-jwt-signing-key-prod-7f8a9b"
+            - name: ENVIRONMENT
+              value: "production"
+          securityContext:
+            privileged: true
+            runAsUser: 0
+      serviceAccountName: payment-service-sa
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: payment-service-sa
+  namespace: production
+  labels:
+    app: payment-service

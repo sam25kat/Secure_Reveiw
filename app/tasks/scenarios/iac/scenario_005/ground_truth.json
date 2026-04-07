@@ -1,0 +1,70 @@
+{
+    "scenario_id": "iac_005",
+    "description": "Multi-account IAM setup with cross-account roles and management VPC",
+    "review_checklist": [
+        "Check cross-account trust policies for overly broad access",
+        "Verify MFA requirements on sensitive role assumptions",
+        "Check VPC flow logs for network monitoring",
+        "Verify S3 bucket versioning and backup configuration",
+        "Review security group rules for least privilege",
+        "Check encryption defaults for EBS volumes"
+    ],
+    "initial_files": ["main.tf", "iam_cross_account.tf"],
+    "available_files": ["vpc.tf"],
+    "ground_truth": [
+        {
+            "file": "iam_cross_account.tf",
+            "line": 1,
+            "rule_id": "IAC-010",
+            "severity": "critical",
+            "description": "Cross-account IAM role trust policy uses Principal '*' allowing any AWS account to assume the role",
+            "match_key": "aws_iam_role.cross_account_admin|cross_account_access",
+            "category": "cross_account_access"
+        },
+        {
+            "file": "iam_cross_account.tf",
+            "line": 28,
+            "rule_id": "IAC-005",
+            "severity": "high",
+            "description": "Cross-account assume role policy missing MFA condition for role 'dev-account-deploy-role'",
+            "match_key": "aws_iam_role.dev_account_deploy|missing_auth",
+            "category": "missing_auth"
+        },
+        {
+            "file": "vpc.tf",
+            "line": 1,
+            "rule_id": "IAC-006",
+            "severity": "high",
+            "description": "VPC 'management-vpc' does not have VPC flow logs enabled for network traffic monitoring",
+            "match_key": "aws_vpc.management|missing_logging",
+            "category": "missing_logging"
+        },
+        {
+            "file": "main.tf",
+            "line": 5,
+            "rule_id": "IAC-011",
+            "severity": "medium",
+            "description": "S3 bucket 'terraform-state' does not have versioning enabled for state file protection",
+            "match_key": "aws_s3_bucket.terraform_state|missing_backup",
+            "category": "missing_backup"
+        },
+        {
+            "file": "main.tf",
+            "line": 28,
+            "rule_id": "IAC-004",
+            "severity": "high",
+            "description": "Security group allows SSH (port 22) ingress from 0.0.0.0/0",
+            "match_key": "aws_security_group.management|permissive_security_group",
+            "category": "permissive_security_group"
+        },
+        {
+            "file": "main.tf",
+            "line": 24,
+            "rule_id": "IAC-002",
+            "severity": "medium",
+            "description": "EBS encryption by default is explicitly disabled across the account",
+            "match_key": "aws_ebs_encryption_by_default.default|encryption_at_rest",
+            "category": "encryption_at_rest"
+        }
+    ]
+}

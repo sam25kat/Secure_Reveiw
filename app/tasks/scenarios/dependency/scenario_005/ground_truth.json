@@ -1,0 +1,51 @@
+{
+    "scenario_id": "dep_005",
+    "description": "Django web application with REST framework and async support",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on PyPI",
+        "Check for known CVEs in pinned versions",
+        "Look for deprecated packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["requirements.txt"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "requirements.txt",
+            "line": 5,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'djang-extensions' is a misspelling of the popular 'django-extensions' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "djang-extensions",
+            "category": "typosquat"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 9,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'python-dateutil-parser' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "python-dateutil-parser",
+            "category": "hallucinated"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 13,
+            "rule_id": "DEP-003",
+            "severity": "critical",
+            "description": "pyyaml 5.3.1 has CVE-2020-14343: arbitrary code execution via untrusted YAML input when using yaml.load() without a safe Loader.",
+            "match_key": "pyyaml",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 19,
+            "rule_id": "DEP-004",
+            "severity": "high",
+            "description": "urllib3 1.26.5 has CVE-2023-45803: request body not stripped after redirect from 303 status, potentially leaking sensitive data to unintended endpoints.",
+            "match_key": "urllib3",
+            "category": "known_cve"
+        }
+    ]
+}

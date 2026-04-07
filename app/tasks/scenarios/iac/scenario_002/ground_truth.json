@@ -1,0 +1,60 @@
+{
+    "scenario_id": "iac_002",
+    "description": "Serverless API with Lambda, API Gateway, and DynamoDB",
+    "review_checklist": [
+        "Check IAM policies for least privilege",
+        "Verify API authentication and authorization",
+        "Check encryption configuration for data stores",
+        "Verify logging and monitoring setup",
+        "Review Lambda function security configuration"
+    ],
+    "initial_files": ["main.tf", "iam.tf"],
+    "available_files": ["variables.tf"],
+    "ground_truth": [
+        {
+            "file": "iam.tf",
+            "line": 23,
+            "rule_id": "IAC-005",
+            "severity": "critical",
+            "description": "IAM role policy for Lambda uses wildcard Action '*' and Resource '*' granting unrestricted access",
+            "match_key": "aws_iam_role_policy.lambda_policy|iam_wildcard",
+            "category": "iam_wildcard"
+        },
+        {
+            "file": "main.tf",
+            "line": 60,
+            "rule_id": "IAC-008",
+            "severity": "high",
+            "description": "API Gateway method has authorization set to NONE allowing unauthenticated access",
+            "match_key": "aws_api_gateway_method.proxy|missing_auth",
+            "category": "missing_auth"
+        },
+        {
+            "file": "main.tf",
+            "line": 5,
+            "rule_id": "IAC-002",
+            "severity": "medium",
+            "description": "DynamoDB table 'api-data-table' does not have server-side encryption configured",
+            "match_key": "aws_dynamodb_table.api_data|encryption_at_rest",
+            "category": "encryption_at_rest"
+        },
+        {
+            "file": "main.tf",
+            "line": 27,
+            "rule_id": "IAC-006",
+            "severity": "medium",
+            "description": "Lambda function 'api-handler' has no associated CloudWatch log group for execution logging",
+            "match_key": "aws_lambda_function.api_handler|missing_logging",
+            "category": "missing_logging"
+        },
+        {
+            "file": "main.tf",
+            "line": 27,
+            "rule_id": "IAC-005",
+            "severity": "high",
+            "description": "Lambda function references an overly permissive execution role with wildcard permissions",
+            "match_key": "aws_lambda_function.api_handler|iam_wildcard",
+            "category": "iam_wildcard"
+        }
+    ]
+}

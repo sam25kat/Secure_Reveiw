@@ -1,0 +1,60 @@
+{
+    "scenario_id": "dep_004",
+    "description": "ML pipeline with PyTorch, Transformers, and training infrastructure",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on PyPI",
+        "Check for known CVEs in pinned versions",
+        "Look for deprecated packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["requirements.txt"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "requirements.txt",
+            "line": 6,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'pytorch-lightning-utils' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "pytorch-lightning-utils",
+            "category": "hallucinated"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 11,
+            "rule_id": "DEP-003",
+            "severity": "high",
+            "description": "cryptography 3.4.8 has CVE-2023-49083: NULL pointer dereference when loading PKCS7 certificates, leading to denial of service.",
+            "match_key": "cryptography",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 14,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'colrama' is a misspelling of the popular 'colorama' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "colrama",
+            "category": "typosquat"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 17,
+            "rule_id": "DEP-003",
+            "severity": "high",
+            "description": "gradio 3.44.4 has CVE-2023-51449: path traversal vulnerability allowing unauthorized file access on the server.",
+            "match_key": "gradio",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 26,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'tensorfow-gpu' is a misspelling of the popular 'tensorflow-gpu' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "tensorfow-gpu",
+            "category": "typosquat"
+        }
+    ]
+}

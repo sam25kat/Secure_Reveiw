@@ -1,0 +1,43 @@
+{
+    "scenario_id": "migration_001",
+    "description": "Add email verification to users table — review a migration adding columns and dropping a column on a high-traffic users table with 12M rows under zero-downtime rolling deployment",
+    "review_checklist": [
+        "Check for NOT NULL columns added without DEFAULT values on large tables",
+        "Verify indexes are created with CONCURRENTLY on large tables",
+        "Check if dropped or renamed columns are still referenced by application code",
+        "Verify migration ordering and dependencies",
+        "Check for lock-heavy operations on high-traffic tables",
+        "Consider the deployment strategy (rolling/blue-green) and downtime budget"
+    ],
+    "initial_files": ["schema.sql", "migration_001.sql"],
+    "available_files": ["context.json", "app_context.py"],
+    "ground_truth": [
+        {
+            "file": "migration_001.sql",
+            "line": 5,
+            "rule_id": "MIG-001",
+            "severity": "critical",
+            "description": "Adding NOT NULL column email_verified without a DEFAULT on a 12M-row table causes a full table rewrite with ACCESS EXCLUSIVE lock, blocking all reads and writes. Use DEFAULT FALSE for a metadata-only operation in PostgreSQL 11+.",
+            "match_key": "add_column|users.email_verified",
+            "category": "not_null_without_default"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 7,
+            "rule_id": "MIG-002",
+            "severity": "high",
+            "description": "Creating index without CONCURRENTLY on a 12M-row table acquires a SHARE lock, blocking all writes for the duration of the index build.",
+            "match_key": "create_index|users.email_verified",
+            "category": "non_concurrent_index"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 9,
+            "rule_id": "MIG-003",
+            "severity": "critical",
+            "description": "Dropping legacy_auth_token while auth_service still queries it in validate_legacy_token() and migrate_to_new_auth(). In a rolling deployment, old code will fail immediately after the column is removed.",
+            "match_key": "drop_column|users.legacy_auth_token",
+            "category": "drop_column_in_use"
+        }
+    ]
+}

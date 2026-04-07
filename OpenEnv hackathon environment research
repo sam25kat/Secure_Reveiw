@@ -1,0 +1,43 @@
+OpenEnv hackathon environment research
+
+Research plan created
+
+Gathered 477 sources
+
+
+arxiv.org
+
+51 sources
+
+
+huggingface.co
+
+51 sources
+
+
+github.com
+
+32 sources
+
+
+medium.com
+
+11 sources
+
+332 other sources
+
+
+Database schema migration review identified as the most promising novel AI agent evaluation environment — no benchmark exists despite migrations being the #1 cause of deployment incidents, with exceptionally clean binary grading (safe/unsafe) and rich codifiable unsafe patterns, followed by IaC security review and supply chain attack detection as strong alternatives.
+120 sources
+
+OpenEnv is a Meta-PyTorch/Hugging Face open-source framework (v0.2.1) providing 28+ standardized RL environments spanning games, code execution, robotics, finance, and autonomous driving, using Gymnasium-style APIs with WebSocket communication and Docker/HF Spaces deployment, with an ecosystem already covering 25+ domains including multiple active hackathons with $140K+ in prizes
+77 sources
+
+Meta and Hugging Face engineers at the OpenEnv hackathon most value environments that fill real gaps — especially temporal reasoning (identified as the hardest capability for all models in Gaia2), noisy/adversarial scenarios reflecting real-world messiness, and code generation with execution feedback aligned with Meta's AI engineer ambitions — built to OpenEnv's Gymnasium API spec with immediate usability for agentic RL post-training of existing LLMs.
+87 sources
+
+AI-generated code now comprises 41-50% of all code yet 45% contains security vulnerabilities (2.74x higher than human code), with no standardized benchmark existing to evaluate AI code security — identified as the most urgent unsolved evaluation gap in AI today
+100 sources
+
+AI agent benchmarks as of 2025-2026 reveal massive gaps: while coding and web navigation are well-covered, DevOps/SRE operations, infrastructure-as-code, security operations, and enterprise workflows have virtually no standardized evaluation — and when tasks require sustained hours-long effort (as in real freelance work), agent performance collapses from ~50-70% to just 2.5% automation rate.
+93 sources

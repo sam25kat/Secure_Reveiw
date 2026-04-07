@@ -1,0 +1,70 @@
+{
+    "scenario_id": "iac_003",
+    "description": "EKS Kubernetes cluster with node groups and networking",
+    "review_checklist": [
+        "Check EKS cluster security configuration",
+        "Verify network isolation and security groups",
+        "Check IAM roles for least privilege",
+        "Verify encryption at rest for volumes",
+        "Review cluster endpoint access configuration",
+        "Check audit logging configuration"
+    ],
+    "initial_files": ["main.tf", "vpc.tf"],
+    "available_files": ["iam.tf"],
+    "ground_truth": [
+        {
+            "file": "main.tf",
+            "line": 9,
+            "rule_id": "IAC-006",
+            "severity": "high",
+            "description": "EKS cluster 'production-cluster' does not have control plane audit logging enabled",
+            "match_key": "aws_eks_cluster.main|missing_logging",
+            "category": "missing_logging"
+        },
+        {
+            "file": "vpc.tf",
+            "line": 48,
+            "rule_id": "IAC-004",
+            "severity": "critical",
+            "description": "Security group allows all inbound traffic (0.0.0.0/0) on all ports and protocols",
+            "match_key": "aws_security_group.eks_cluster|permissive_security_group",
+            "category": "permissive_security_group"
+        },
+        {
+            "file": "iam.tf",
+            "line": 48,
+            "rule_id": "IAC-005",
+            "severity": "critical",
+            "description": "EKS node IAM role has AdministratorAccess policy attached granting full AWS access",
+            "match_key": "aws_iam_role_policy_attachment.eks_node_admin|iam_wildcard",
+            "category": "iam_wildcard"
+        },
+        {
+            "file": "main.tf",
+            "line": 52,
+            "rule_id": "IAC-002",
+            "severity": "high",
+            "description": "EKS node launch template has EBS volume encryption set to false",
+            "match_key": "aws_launch_template.eks_nodes|encryption_at_rest",
+            "category": "encryption_at_rest"
+        },
+        {
+            "file": "main.tf",
+            "line": 27,
+            "rule_id": "IAC-007",
+            "severity": "high",
+            "description": "EKS worker node group deployed in public subnets with public IP assignment",
+            "match_key": "aws_eks_node_group.workers|public_subnet",
+            "category": "public_subnet"
+        },
+        {
+            "file": "main.tf",
+            "line": 9,
+            "rule_id": "IAC-001",
+            "severity": "high",
+            "description": "EKS cluster API endpoint has public access enabled with private access disabled",
+            "match_key": "aws_eks_cluster.main|public_access",
+            "category": "public_access"
+        }
+    ]
+}

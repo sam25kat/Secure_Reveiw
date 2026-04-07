@@ -1,0 +1,33 @@
+{
+    "tables": {
+        "users": {
+            "row_count": 3200000,
+            "avg_writes_per_second": 50,
+            "avg_reads_per_second": 5000,
+            "read_replicas": 2
+        },
+        "products": {
+            "row_count": 20000000,
+            "avg_writes_per_second": 30,
+            "avg_reads_per_second": 50000,
+            "read_replicas": 4
+        },
+        "sessions": {
+            "row_count": 8000000,
+            "avg_writes_per_second": 200,
+            "avg_reads_per_second": 3000,
+            "read_replicas": 2
+        },
+        "audit_log": {
+            "row_count": 150000000,
+            "avg_writes_per_second": 1000,
+            "avg_reads_per_second": 500,
+            "read_replicas": 1
+        }
+    },
+    "deployment_strategy": "rolling",
+    "downtime_budget": "zero",
+    "dependent_services": ["auth_service", "pricing_service", "audit_service", "catalog_service"],
+    "database_engine": "PostgreSQL 15",
+    "migration_tool": "custom SQL runner"
+}

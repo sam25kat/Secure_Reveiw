@@ -1,0 +1,52 @@
+{
+    "scenario_id": "migration_003",
+    "description": "Orders table foreign keys — review a migration adding constraints and indexes on high-throughput order_items table (25M rows, 1500 writes/sec) under rolling deployment",
+    "review_checklist": [
+        "Check for NOT NULL columns added without DEFAULT values on large tables",
+        "Verify indexes are created with CONCURRENTLY on large tables",
+        "Check if dropped or renamed columns are still referenced by application code",
+        "Verify migration ordering and dependencies",
+        "Check for lock-heavy operations on high-traffic tables",
+        "Consider the deployment strategy (rolling/blue-green) and downtime budget"
+    ],
+    "initial_files": ["schema.sql", "migration_001.sql"],
+    "available_files": ["context.json", "app_context.py"],
+    "ground_truth": [
+        {
+            "file": "migration_001.sql",
+            "line": 4,
+            "rule_id": "MIG-001",
+            "severity": "critical",
+            "description": "Adding NOT NULL column shipping_address_id without a DEFAULT on the orders table causes a full table rewrite with ACCESS EXCLUSIVE lock, blocking all reads and writes including checkout_service's order creation flow.",
+            "match_key": "add_column|orders.shipping_address_id",
+            "category": "not_null_without_default"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 6,
+            "rule_id": "MIG-008",
+            "severity": "high",
+            "description": "Adding FK constraint on order_items (25M rows, 1500 writes/sec) validates the entire table with a SHARE ROW EXCLUSIVE lock. The supporting index is created after the constraint, forcing a sequential scan during validation.",
+            "match_key": "add_constraint|order_items.fk_order_items_order",
+            "category": "fk_without_index"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 14,
+            "rule_id": "MIG-002",
+            "severity": "critical",
+            "description": "Creating index without CONCURRENTLY on order_items (25M rows, 1500 writes/sec) acquires a SHARE lock, blocking all writes and causing massive write queue buildup in checkout_service.",
+            "match_key": "create_index|order_items.order_id",
+            "category": "non_concurrent_index"
+        },
+        {
+            "file": "migration_001.sql",
+            "line": 16,
+            "rule_id": "MIG-002",
+            "severity": "high",
+            "description": "Creating index without CONCURRENTLY on order_items (25M rows) acquires a SHARE lock blocking all writes. Combined with the other non-concurrent index on the same table, this compounds the total write-blocking duration.",
+            "match_key": "create_index|order_items.product_id",
+            "category": "non_concurrent_index"
+        }
+    ]
+}

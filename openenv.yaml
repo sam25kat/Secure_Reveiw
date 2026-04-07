@@ -1,0 +1,42 @@
+name: securereview
+version: "1.0.0"
+description: "AI Security Code Review Environment — evaluates an agent's ability to identify security vulnerabilities across dependency supply chains, infrastructure-as-code, and database migrations"
+author: "Team CookHouse"
+
+environment:
+  type: http
+  url: "http://localhost:7860"
+
+tasks:
+  - id: dependency_review
+    name: "Dependency & Supply Chain Review"
+    description: "Review dependency files for hallucinated packages, typosquatting, and known vulnerabilities"
+    difficulty: easy
+    max_steps: 15
+
+  - id: iac_review
+    name: "Infrastructure-as-Code Security Review"
+    description: "Review Terraform/Kubernetes configurations for security misconfigurations"
+    difficulty: medium
+    max_steps: 25
+
+  - id: migration_review
+    name: "Database Migration Safety Review"
+    description: "Review SQL migration scripts for backward-incompatibility, safety risks, and production impact"
+    difficulty: hard
+    max_steps: 35
+
+action_space:
+  type: structured
+  actions:
+    - report_finding
+    - request_context
+    - request_file_list
+    - mark_complete
+
+observation_space:
+  type: structured
+  fields:
+    - context (ReviewContext)
+    - findings_so_far (List[Finding])
+    - feedback (Optional[str])

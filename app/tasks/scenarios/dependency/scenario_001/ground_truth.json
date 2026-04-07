@@ -1,0 +1,42 @@
+{
+    "scenario_id": "dep_001",
+    "description": "Flask web application with common Python dependencies",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on PyPI",
+        "Check for known CVEs in pinned versions",
+        "Look for deprecated packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["requirements.txt"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "requirements.txt",
+            "line": 2,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'reqeusts' is a misspelling of the popular 'requests' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "reqeusts",
+            "category": "typosquat"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 5,
+            "rule_id": "DEP-003",
+            "severity": "critical",
+            "description": "python-jwt 4.0.0 has CVE-2024-33663: authentication bypass vulnerability allowing token forgery.",
+            "match_key": "python-jwt",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 6,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'torch-utils' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "torch-utils",
+            "category": "hallucinated"
+        }
+    ]
+}

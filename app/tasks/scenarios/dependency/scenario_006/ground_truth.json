@@ -1,0 +1,60 @@
+{
+    "scenario_id": "dep_006",
+    "description": "DevOps and infrastructure automation tools",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on PyPI",
+        "Check for known CVEs in pinned versions",
+        "Look for deprecated packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["requirements.txt"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "requirements.txt",
+            "line": 1,
+            "rule_id": "DEP-003",
+            "severity": "high",
+            "description": "ansible 2.9.0 has CVE-2021-3447: credential exposure vulnerability where module arguments may be logged in plaintext, leaking sensitive data such as passwords.",
+            "match_key": "ansible",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 3,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'aws-cli-utils' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "aws-cli-utils",
+            "category": "hallucinated"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 4,
+            "rule_id": "DEP-004",
+            "severity": "high",
+            "description": "paramiko 2.7.1 has CVE-2023-48795: vulnerable to the Terrapin SSH attack, allowing prefix truncation that can downgrade connection security.",
+            "match_key": "paramiko",
+            "category": "known_cve"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 9,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'terraform-helper' does not exist on PyPI. This is likely a hallucinated or malicious package name.",
+            "match_key": "terraform-helper",
+            "category": "hallucinated"
+        },
+        {
+            "file": "requirements.txt",
+            "line": 14,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'fabrik' is a misspelling of the popular 'fabric' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "fabrik",
+            "category": "typosquat"
+        }
+    ]
+}

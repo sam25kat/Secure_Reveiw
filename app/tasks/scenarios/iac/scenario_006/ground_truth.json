@@ -1,0 +1,60 @@
+{
+    "scenario_id": "iac_006",
+    "description": "Kubernetes deployment for payment service with service and network policy",
+    "review_checklist": [
+        "Check container security context and privileges",
+        "Verify secrets management practices",
+        "Check resource limits and requests",
+        "Review service exposure and network policies",
+        "Verify pod security standards compliance"
+    ],
+    "initial_files": ["deployment.yaml", "service.yaml"],
+    "available_files": ["network-policy.yaml"],
+    "ground_truth": [
+        {
+            "file": "deployment.yaml",
+            "line": 41,
+            "rule_id": "IAC-009",
+            "severity": "critical",
+            "description": "Container 'payment-api' runs as root (runAsUser: 0) with privileged: true, granting full host access",
+            "match_key": "Deployment.payment-service|privileged_container",
+            "category": "privileged_container"
+        },
+        {
+            "file": "deployment.yaml",
+            "line": 33,
+            "rule_id": "IAC-012",
+            "severity": "critical",
+            "description": "Database password, Stripe API key, and JWT secret exposed as plaintext environment variables",
+            "match_key": "Deployment.payment-service|hardcoded_credentials",
+            "category": "hardcoded_credentials"
+        },
+        {
+            "file": "deployment.yaml",
+            "line": 21,
+            "rule_id": "IAC-009",
+            "severity": "high",
+            "description": "Container 'payment-api' has no resource limits or requests defined, risking resource exhaustion",
+            "match_key": "Deployment.payment-service.payment-api|missing_resource_limits",
+            "category": "privileged_container"
+        },
+        {
+            "file": "service.yaml",
+            "line": 9,
+            "rule_id": "IAC-001",
+            "severity": "high",
+            "description": "Service type LoadBalancer exposes the payment service to the internet without source IP restrictions",
+            "match_key": "Service.payment-service|public_access",
+            "category": "public_access"
+        },
+        {
+            "file": "network-policy.yaml",
+            "line": 1,
+            "rule_id": "IAC-008",
+            "severity": "medium",
+            "description": "NetworkPolicy has empty policyTypes, providing no ingress or egress traffic restrictions",
+            "match_key": "NetworkPolicy.payment-service-netpol|missing_network_acl",
+            "category": "missing_network_acl"
+        }
+    ]
+}

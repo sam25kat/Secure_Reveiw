@@ -1,0 +1,60 @@
+{
+    "scenario_id": "iac_004",
+    "description": "Data pipeline with S3, Glue, and Redshift analytics warehouse",
+    "review_checklist": [
+        "Check for public access to data resources",
+        "Verify encryption at rest and in transit",
+        "Check for hardcoded credentials",
+        "Verify audit logging configuration",
+        "Review IAM policies for data access"
+    ],
+    "initial_files": ["main.tf", "s3.tf", "redshift.tf"],
+    "available_files": ["iam.tf"],
+    "ground_truth": [
+        {
+            "file": "redshift.tf",
+            "line": 10,
+            "rule_id": "IAC-007",
+            "severity": "critical",
+            "description": "Redshift cluster 'analytics-warehouse' has publicly_accessible set to true",
+            "match_key": "aws_redshift_cluster.analytics|public_access",
+            "category": "public_access"
+        },
+        {
+            "file": "s3.tf",
+            "line": 18,
+            "rule_id": "IAC-001",
+            "severity": "critical",
+            "description": "S3 bucket policy allows public access with Principal '*' for GetObject and PutObject",
+            "match_key": "aws_s3_bucket_policy.raw_data_policy|public_access",
+            "category": "public_access"
+        },
+        {
+            "file": "redshift.tf",
+            "line": 10,
+            "rule_id": "IAC-003",
+            "severity": "high",
+            "description": "Redshift cluster has encrypted set to false, data at rest is not encrypted",
+            "match_key": "aws_redshift_cluster.analytics|encryption_at_rest",
+            "category": "encryption_at_rest"
+        },
+        {
+            "file": "redshift.tf",
+            "line": 14,
+            "rule_id": "IAC-012",
+            "severity": "critical",
+            "description": "Redshift cluster master_password is hardcoded in plaintext as 'Pr0duction#Pass2024!'",
+            "match_key": "aws_redshift_cluster.analytics|hardcoded_credentials",
+            "category": "hardcoded_credentials"
+        },
+        {
+            "file": "redshift.tf",
+            "line": 10,
+            "rule_id": "IAC-006",
+            "severity": "medium",
+            "description": "Redshift cluster does not have audit logging configuration enabled",
+            "match_key": "aws_redshift_cluster.analytics|missing_logging",
+            "category": "missing_logging"
+        }
+    ]
+}

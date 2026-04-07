@@ -1,0 +1,21 @@
+{
+    "tables": {
+        "profiles": {
+            "row_count": 5200000,
+            "avg_writes_per_second": 80,
+            "avg_reads_per_second": 15000,
+            "read_replicas": 3
+        },
+        "followers": {
+            "row_count": 28000000,
+            "avg_writes_per_second": 200,
+            "avg_reads_per_second": 5000,
+            "read_replicas": 3
+        }
+    },
+    "deployment_strategy": "blue_green",
+    "downtime_budget": "zero",
+    "dependent_services": ["feed_service", "search_service"],
+    "database_engine": "PostgreSQL 15",
+    "migration_tool": "custom SQL runner"
+}

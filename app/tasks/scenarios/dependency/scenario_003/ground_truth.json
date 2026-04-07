@@ -1,0 +1,42 @@
+{
+    "scenario_id": "dep_003",
+    "description": "Node.js Express API server with common npm dependencies",
+    "review_checklist": [
+        "Check for misspelled package names (typosquatting)",
+        "Verify all packages exist on npm",
+        "Check for known security advisories in pinned versions",
+        "Look for deprecated or compromised packages",
+        "Check for packages with suspicious metadata"
+    ],
+    "initial_files": ["package.json"],
+    "available_files": [],
+    "ground_truth": [
+        {
+            "file": "package.json",
+            "line": null,
+            "rule_id": "DEP-002",
+            "severity": "critical",
+            "description": "Typosquat: 'expres-validator' is a misspelling of the popular 'express-validator' package. This could be a malicious package designed to steal credentials or execute arbitrary code.",
+            "match_key": "expres-validator",
+            "category": "typosquat"
+        },
+        {
+            "file": "package.json",
+            "line": null,
+            "rule_id": "DEP-001",
+            "severity": "high",
+            "description": "Package 'react-native-util' does not exist on npm. This is likely a hallucinated or malicious package name.",
+            "match_key": "react-native-util",
+            "category": "hallucinated"
+        },
+        {
+            "file": "package.json",
+            "line": null,
+            "rule_id": "DEP-003",
+            "severity": "critical",
+            "description": "event-stream 3.3.4 was compromised with a malicious dependency (flatmap-stream) that targeted a specific bitcoin wallet application to steal funds. This is one of the most well-known supply chain attacks in npm history.",
+            "match_key": "event-stream",
+            "category": "known_cve"
+        }
+    ]
+}
