@@ -1,3 +1,20 @@
+---
+title: SecureReview
+emoji: 🔐
+colorFrom: indigo
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+tags:
+  - openenv
+  - security
+  - code-review
+  - agent
+  - evaluation
+---
+
 # SecureReview
 
 **The first OpenEnv environment for AI-powered security code review**
@@ -116,13 +133,25 @@ GET  /state               Get current episode state
 
 ## Baseline Scores
 
-| Task | Model | Score |
-|------|-------|-------|
-| `dependency_review` | Llama-3.1-8B-Instruct | ~0.45-0.65 |
-| `iac_review` | Llama-3.1-8B-Instruct | ~0.30-0.50 |
-| `migration_review` | Llama-3.1-8B-Instruct | ~0.15-0.35 |
+Evaluated on live Hugging Face Space deployment (`https://sam25kat-securereview.hf.space`) with `deepseek-ai/DeepSeek-V3-0324` via the HF Inference Router:
 
-*Scores vary by scenario. The hard task (migration_review) is designed to challenge frontier models.*
+| Task | Difficulty | Scenario | Score | Notes |
+|------|-----------|----------|-------|-------|
+| `dependency_review` | Easy | dep_006 | **0.45** | Full run; identified 2/5 issues |
+| `iac_review` | Medium | iac_004 | **0.52** | Identified multiple misconfigurations |
+| `migration_review` | Hard | migration_001 | **0.05** | Designed to challenge frontier models |
+
+**Overall average: 0.34**
+
+Perfect-score reference (oracle agent with ground-truth findings): **0.99** (validates grader correctness).
+
+The hard task (migration_review) is deliberately challenging — it requires cross-file reasoning about production context (table sizes, deployment strategy) and application code dependencies to determine why specific DDL operations are unsafe. This creates significant headroom for better models.
+
+## Live Deployment
+
+- **Hugging Face Space:** https://huggingface.co/spaces/sam25kat/securereview
+- **API Endpoint:** https://sam25kat-securereview.hf.space
+- **GitHub:** https://github.com/sam25kat/Secure_Reveiw
 
 ## Project Structure
 
