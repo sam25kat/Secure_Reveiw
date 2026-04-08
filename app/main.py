@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from typing import List
+from typing import List, Optional
 
 from app.models import (
     ResetRequest, ResetResponse, StepRequest, StepResponse, TaskInfo
@@ -14,6 +14,8 @@ app = FastAPI(
 
 env = SecureReviewEnvironment()
 
+DEFAULT_TASK_ID = "dependency_review"
+
 
 @app.get("/health")
 async def health():
@@ -26,9 +28,16 @@ async def get_tasks():
 
 
 @app.post("/reset", response_model=ResetResponse)
-async def reset(request: ResetRequest):
+async def reset(request: Optional[ResetRequest] = None):
+    """Reset the environment. Body is optional; defaults to dependency_review task."""
     try:
-        observation, info = env.reset(request.task_id, request.scenario_id)
+        if request is None:
+            task_id = DEFAULT_TASK_ID
+            scenario_id = None
+        else:
+            task_id = request.task_id or DEFAULT_TASK_ID
+            scenario_id = request.scenario_id
+        observation, info = env.reset(task_id, scenario_id)
         return ResetResponse(observation=observation, info=info)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

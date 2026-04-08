@@ -77,7 +77,7 @@ class Reward(BaseModel):
 # === API Request/Response Models ===
 
 class ResetRequest(BaseModel):
-    task_id: str
+    task_id: Optional[str] = None
     scenario_id: Optional[str] = None
 
 
