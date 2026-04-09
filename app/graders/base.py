@@ -52,7 +52,25 @@ class BaseGrader(ABC):
         steps_ratio = steps_used / max(max_steps, 1)
         efficiency_bonus = max(0.0, (1.0 - steps_ratio) * 0.05)
 
-        score = max(0.0, min(1.0, f1 * 0.85 + severity_bonus + efficiency_bonus - fp_penalty))
+        # Small participation bonus so an empty-but-submitted episode never
+        # scores exactly 0.0 (OpenEnv validator requires scores strictly in
+        # the open interval (0, 1)).
+        participation_bonus = 0.01
+
+        raw_score = (
+            f1 * 0.83
+            + severity_bonus
+            + efficiency_bonus
+            + participation_bonus
+            - fp_penalty
+        )
+
+        # Clamp strictly within the open interval (0, 1).
+        # Floor at 0.01 so we never emit exactly 0.0.
+        # Ceiling at 0.99 so we never emit exactly 1.0 (a perfect oracle run
+        # still yields 0.99, which is indistinguishable from "perfect" for
+        # all practical purposes but satisfies the strict-bounds rule).
+        score = max(0.01, min(0.99, raw_score))
 
         return Reward(
             score=round(score, 2),
