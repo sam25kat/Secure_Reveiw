@@ -1,11 +1,11 @@
 ---
 title: SecureReview
-emoji: 🔐
-colorFrom: indigo
-colorTo: red
+emoji: 🛡
+colorFrom: gray
+colorTo: indigo
 sdk: docker
 app_port: 7860
-pinned: false
+pinned: true
 license: mit
 tags:
   - openenv
@@ -13,175 +13,350 @@ tags:
   - code-review
   - agent
   - evaluation
+  - rl
+short_description: The agent review benchmark for the age of AI.
 ---
+
+<div align="center">
+
+<br>
 
 # SecureReview
 
-**The first OpenEnv environment for AI-powered security code review**
+### *Security review, for the age of AI.*
 
-SecureReview evaluates an AI agent's ability to perform security-conscious code review across three critical domains where human reviewers are most stretched: dependency supply chains, cloud infrastructure configurations, and database migrations.
+**The first evaluation harness that holds AI agents to the bar of a senior engineer at code review.**
+*Three domains. Sixteen hand-crafted scenarios. Seventy-two production-grade vulnerabilities.*
 
-## Why SecureReview?
+<br>
 
-As AI generates an ever-larger share of production code, the bottleneck shifts from *writing* code to *reviewing* it. SecureReview fills a gap in the agent evaluation landscape: no existing environment tests an agent's ability to critically review artifacts for correctness and safety.
+[![OpenEnv](https://img.shields.io/badge/OpenEnv-v1.0-0a0a0a?style=for-the-badge&labelColor=0a0a0a)](https://github.com/meta-pytorch/OpenEnv)
+[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Live-0a0a0a?style=for-the-badge&labelColor=0a0a0a)](https://huggingface.co/spaces/sam25kat/securereview)
+[![Python](https://img.shields.io/badge/Python-3.10+-0a0a0a?style=for-the-badge&logo=python&logoColor=white&labelColor=0a0a0a)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-0a0a0a?style=for-the-badge&labelColor=0a0a0a)](LICENSE)
 
-Each domain represents a real category of production incidents that costs organizations billions annually:
-- **Supply chain attacks** (SolarWinds, event-stream, ua-parser-js) via poisoned dependencies
-- **Cloud misconfigurations** (Capital One breach, exposed S3 buckets) via insecure IaC
-- **Database incidents** (GitHub, Slack outages) via unsafe migrations on large tables
+<br>
 
-## Tasks
+[**Live Environment**](https://sam25kat-securereview.hf.space) · [**API Docs**](https://sam25kat-securereview.hf.space/docs) · [**Hugging Face Space**](https://huggingface.co/spaces/sam25kat/securereview)
 
-| Task | Domain | Difficulty | Max Steps | Scenarios | Description |
-|------|--------|------------|-----------|-----------|-------------|
-| `dependency_review` | Supply Chain | Easy | 15 | 6 | Identify hallucinated, typosquatted, and vulnerable packages |
-| `iac_review` | Infrastructure | Medium | 25 | 6 | Detect security misconfigurations in Terraform/K8s configs |
-| `migration_review` | Database | Hard | 35 | 4 | Analyze migration scripts for safety risks and production impact |
+<br>
 
-### Task Details
+</div>
 
-**Dependency & Supply Chain Review (Easy)**
-The agent reviews `requirements.txt` or `package.json` files containing 15-30 dependencies. Hidden among legitimate packages are 3-6 planted issues: typosquatted package names, hallucinated packages that don't exist on PyPI/npm, and packages pinned to versions with known critical CVEs.
+---
 
-**Infrastructure-as-Code Security Review (Medium)**
-The agent reviews 2-5 Terraform or Kubernetes YAML files defining cloud infrastructure. Each scenario contains 4-6 security misconfigurations based on CIS Benchmarks, ranging from single-resource issues (public S3 buckets) to cross-resource problems (overly permissive IAM roles attached to public-facing services).
+## Thesis
 
-**Database Migration Safety Review (Hard)**
-The agent reviews SQL migration scripts alongside production context (table sizes, traffic patterns, deployment strategy) and application code showing column usage. The agent must reason about why specific DDL operations are unsafe given the production environment — for example, adding a NOT NULL column without a default on a 12M-row table during a zero-downtime rolling deployment.
+> **AI now authors a generation of production code. Review is the bottleneck — not authorship.**
+>
+> An agent that cannot review code at the level of a senior engineer cannot be trusted to write it. SecureReview is the benchmark that holds agents to that bar.
 
-## Action Space
+Every existing OpenEnv environment tests the same skill: can the agent *do* something? Play a game, navigate a grid, call a tool, write an answer. None of them test the skill that matters most in a world of AI-generated code: **can the agent read what's already there, and spot what will break production?**
 
-| Action | Parameters | Description |
-|--------|-----------|-------------|
-| `report_finding` | file, line, rule_id, severity, description | Submit a security finding |
-| `request_context` | filename | Request additional files for review |
-| `request_file_list` | none | List all available files in the scenario |
-| `mark_complete` | none | End review and trigger grading |
+This is the category SecureReview opens.
 
-### Rule IDs
+<br>
 
-**Dependency (DEP-001 to DEP-007):** Hallucinated package, typosquat, critical CVE, high CVE, suspicious install script, compromised maintainer, deprecated package.
+## The three domains
 
-**IaC (IAC-001 to IAC-012):** Public access, missing encryption (at rest / in transit), permissive security groups, IAM wildcards, missing logging, public subnet, missing network ACLs, privileged containers, cross-account access, missing backups, hardcoded credentials.
+SecureReview is grounded in three categories of real-world incidents that have cost companies billions. Each maps cleanly to a concrete failure mode that human reviewers catch — and that AI-generated code regularly ships anyway.
 
-**Migration (MIG-001 to MIG-010):** NOT NULL without default, non-concurrent index, dropping used column, renaming during zero-downtime, type change rewrite, ordering dependency, missing expand-migrate-contract, FK without index, dropping referenced table, missing lock timeout.
+|   | Domain | Real-world precedent |
+|---|--------|---------------------|
+| **I** | Supply chain compromise | `SolarWinds` · `event-stream` · `ua-parser-js` |
+| **II** | Cloud misconfiguration | `Capital One` · every public S3 bucket post-mortem |
+| **III** | Unsafe database migrations | `GitHub outages` · `Slack incidents` · every AWS RCA |
 
-## Observation Space
+An agent that scores well on SecureReview is an agent you could actually let touch production code.
 
-On `reset()`, the agent receives:
-- **Task description** and difficulty level
-- **Files to review** (source code, configs, schemas)
-- **Review checklist** specific to the task domain
-- **Available files** that can be requested via `request_context`
-- **Step budget** (max steps remaining)
+<br>
 
-On each `step()`, the agent receives updated state including all findings submitted so far and feedback on the last action.
+## The benchmark
 
-## Reward Function
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### I. Dependency &amp; Supply Chain Security
+
+Identify typosquatted packages, hallucinated imports that do not exist on PyPI, and pinned versions with active CVEs.
+
+Tests the baseline of supply-chain literacy every reviewer should have.
+
+`requirements.txt` · `package.json`
+**6 scenarios · 25 findings · 15 steps**
+
+##### Easy
+
+</td>
+<td width="33%" valign="top">
+
+### II. Infrastructure-as-Code Misconfiguration Detection
+
+Catch CIS-benchmark violations in Terraform and Kubernetes — public buckets, wildcard IAM, missing encryption, privileged containers, cross-account trust.
+
+Tests multi-file cloud security reasoning.
+
+Terraform `.tf` · Kubernetes YAML
+**6 scenarios · 31 findings · 25 steps**
+
+##### Medium
+
+</td>
+<td width="33%" valign="top">
+
+### III. Database Migration Safety Analysis
+
+Reason about SQL migrations against live production context — table sizes, write throughput, deployment strategy, downstream services.
+
+Tests the hardest form of review: **judgment**.
+
+Schema · migrations · app code
+**4 scenarios · 17 findings · 35 steps**
+
+##### Hard
+
+</td>
+</tr>
+</table>
+
+<br>
+
+## Why it is different
+
+| | Typical OpenEnv environment | SecureReview |
+|---|---|---|
+| **Task** | Game, toy, synthetic | Real production artifact |
+| **Skill tested** | Acting in the world | Reading the world |
+| **Ground truth** | Game rules | Senior-engineer judgment |
+| **Reward** | Game score | Deterministic F1 over planted vulnerabilities |
+| **Transfer** | To more games | To shipping code in production |
+
+<br>
+
+## Architecture
 
 ```
-Score = F1(precision, recall) * 0.85 + severity_bonus + efficiency_bonus - FP_penalty
+ ┌─────────────────┐        HTTP        ┌──────────────────────┐
+ │                 │ ◄────────────────► │                      │
+ │   Your Agent    │   reset / step     │   FastAPI Server     │
+ │  (OpenAI SDK)   │      state         │   (Docker · HF)      │
+ │                 │                    │                      │
+ └─────────────────┘                    └──────────┬───────────┘
+                                                   │
+                                        ┌──────────┴───────────┐
+                                        │                      │
+                                        ▼                      ▼
+                               ┌─────────────────┐   ┌──────────────────┐
+                               │ Task Registry   │   │ Deterministic    │
+                               │ 16 scenarios    │   │ F1 Grader        │
+                               │ 72 findings     │   │ (task-specific)  │
+                               └─────────────────┘   └──────────────────┘
 ```
 
-| Component | Range | Description |
-|-----------|-------|-------------|
-| **F1 Score** | 0.0-0.85 | Precision/recall of findings vs ground truth |
-| **Severity Bonus** | 0.0-0.10 | Correctly categorizing severity levels |
-| **Efficiency Bonus** | 0.0-0.05 | Using fewer steps than the budget |
-| **FP Penalty** | 0.0-0.20 | -0.03 per false positive (capped) |
+Every scenario is a closed world. Every grader is deterministic. Every score is reproducible. No LLM-as-judge. No fuzzy matching that can be gamed.
 
-Finding matching is task-specific:
-- **Dependency:** Match by package name (exact, case-insensitive)
-- **IaC:** Match by (resource_identifier, rule_category) with fuzzy fallback
-- **Migration:** Match by (operation_type, target_object)
+<br>
 
-## Setup
+## Action space
 
-### Docker
+Four primitives. Enough to support partial-information reasoning without drowning the agent in tool choice.
+
+```python
+class Action:
+    action_type: Literal[
+        "report_finding",       # submit a security finding
+        "request_context",      # load another file into the review context
+        "request_file_list",    # discover available files
+        "mark_complete",        # end the episode and trigger grading
+    ]
+    finding:  Optional[Finding]   # required for report_finding
+    filename: Optional[str]       # required for request_context
+```
+
+Every `Finding` is a typed record: `file`, `line`, `rule_id`, `severity`, `description`. The agent reports as many as its step budget allows.
+
+<br>
+
+## Reward
+
+```
+score  =  F1(precision, recall) × 0.83
+       +  severity_bonus          (≤ 0.10)
+       +  efficiency_bonus        (≤ 0.05)
+       +  participation_bonus     (= 0.01)
+       −  false_positive_penalty  (≤ 0.20)
+```
+
+Clamped strictly to the open interval `(0.01, 0.99)`. Deterministic and reproducible.
+
+#### Matching strategy
+
+| Task | Primary match | Fallback |
+|------|---------------|----------|
+| `dependency_review` | Package name in description | Line number |
+| `iac_review` | `(resource_id, rule_category)` | File + category |
+| `migration_review` | `(operation, target_object)` | Line + rule_id |
+
+<br>
+
+## Quick start
+
+#### Against the hosted environment
+
+```python
+import requests
+
+ENV = "https://sam25kat-securereview.hf.space"
+
+# Start an episode
+r = requests.post(f"{ENV}/reset", json={"task_id": "dependency_review"})
+observation = r.json()["observation"]
+
+# Report a finding
+action = {
+    "action_type": "report_finding",
+    "finding": {
+        "file": "requirements.txt",
+        "line": 2,
+        "rule_id": "DEP-002",
+        "severity": "critical",
+        "description": "Typosquat: 'reqeusts' is a misspelling of 'requests'",
+    },
+}
+requests.post(f"{ENV}/step", json={"action": action})
+
+# End the episode and receive the final score
+r = requests.post(f"{ENV}/step", json={"action": {"action_type": "mark_complete"}})
+print(f"score = {r.json()['reward']}")
+```
+
+#### Run the baseline agent
+
+```bash
+export API_BASE_URL="https://router.huggingface.co/v1"
+export MODEL_NAME="deepseek-ai/DeepSeek-V3-0324"
+export HF_TOKEN="hf_..."
+export ENV_URL="https://sam25kat-securereview.hf.space"
+
+python inference.py
+```
+
+#### Run locally with Docker
 
 ```bash
 docker build -t securereview .
 docker run -p 7860:7860 securereview
 ```
 
-### Local Development
+<br>
 
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 7860
-```
+## Interface
 
-### Running the Baseline Agent
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Landing page |
+| `GET` | `/health` | Health check |
+| `GET` | `/tasks` | List available tasks |
+| `GET` | `/metadata` | Environment metadata |
+| `GET` | `/schema` | Action / observation / state JSON schemas |
+| `GET` | `/state` | Current episode state |
+| `GET` | `/docs` | OpenAPI interactive docs |
+| `POST` | `/reset` | Start a new episode |
+| `POST` | `/step` | Execute an action |
+| `POST` | `/mcp` | JSON-RPC 2.0 MCP endpoint |
 
-```bash
-export API_BASE_URL="https://router.huggingface.co/v1"
-export MODEL_NAME="meta-llama/Llama-3.1-8B-Instruct"
-export HF_TOKEN="your-hf-token"
-export ENV_URL="http://localhost:7860"  # optional, defaults to localhost
-python inference.py
-```
+<br>
 
-### API Endpoints
+## Baseline
 
-```
-GET  /health              Health check
-GET  /tasks               List available tasks
-POST /reset               Start new episode: {"task_id": "dependency_review"}
-POST /step                Execute action: {"action": {"action_type": "report_finding", ...}}
-GET  /state               Get current episode state
-```
+Evaluated against the live Space with `deepseek-ai/DeepSeek-V3-0324` via the Hugging Face Inference Router.
 
-## Baseline Scores
+| Task | Difficulty | Score |
+|------|:----------:|:-----:|
+| `dependency_review` | Easy | `0.45` |
+| `iac_review` | Medium | `0.52` |
+| `migration_review` | Hard | `0.05` |
+| **Average** | | **`0.34`** |
 
-Evaluated on live Hugging Face Space deployment (`https://sam25kat-securereview.hf.space`) with `deepseek-ai/DeepSeek-V3-0324` via the HF Inference Router:
+Oracle reference (agent submitting ground-truth findings): **`0.98`** — validates grader correctness.
 
-| Task | Difficulty | Scenario | Score | Notes |
-|------|-----------|----------|-------|-------|
-| `dependency_review` | Easy | dep_006 | **0.45** | Full run; identified 2/5 issues |
-| `iac_review` | Medium | iac_004 | **0.52** | Identified multiple misconfigurations |
-| `migration_review` | Hard | migration_001 | **0.05** | Designed to challenge frontier models |
+The hard task is deliberately challenging. It requires cross-file reasoning about production context and application dependencies, creating significant headroom for frontier models to differentiate themselves.
 
-**Overall average: 0.34**
+<br>
 
-Perfect-score reference (oracle agent with ground-truth findings): **0.99** (validates grader correctness).
-
-The hard task (migration_review) is deliberately challenging — it requires cross-file reasoning about production context (table sizes, deployment strategy) and application code dependencies to determine why specific DDL operations are unsafe. This creates significant headroom for better models.
-
-## Live Deployment
-
-- **Hugging Face Space:** https://huggingface.co/spaces/sam25kat/securereview
-- **API Endpoint:** https://sam25kat-securereview.hf.space
-- **GitHub:** https://github.com/sam25kat/Secure_Reveiw
-
-## Project Structure
+## Project structure
 
 ```
 securereview/
-├── Dockerfile
-├── openenv.yaml
-├── inference.py                 # Baseline agent
-├── README.md
-├── requirements.txt
 ├── app/
-│   ├── main.py                  # FastAPI endpoints
-│   ├── environment.py           # Core environment logic
-│   ├── models.py                # Pydantic models
+│   ├── main.py                FastAPI endpoints
+│   ├── landing.py             Premium HTML landing page
+│   ├── environment.py         Episode state machine
+│   ├── models.py              Pydantic types
 │   ├── graders/
-│   │   ├── base.py              # Shared scoring formula
-│   │   ├── dependency_grader.py # Package name matching
-│   │   ├── iac_grader.py        # Resource+category matching
-│   │   └── migration_grader.py  # Operation+target matching
+│   │   ├── base.py            F1 + severity + efficiency scoring
+│   │   ├── dependency_grader.py
+│   │   ├── iac_grader.py
+│   │   └── migration_grader.py
 │   └── tasks/
-│       ├── task_registry.py     # Scenario loading
-│       └── scenarios/           # 16 hand-crafted scenarios
-│           ├── dependency/      # 6 scenarios
-│           ├── iac/             # 6 scenarios
-│           └── migration/       # 4 scenarios
-└── tests/
+│       ├── task_registry.py   Scenario discovery
+│       └── scenarios/         16 hand-crafted scenarios
+│           ├── dependency/    6 scenarios
+│           ├── iac/           6 scenarios
+│           └── migration/     4 scenarios
+│
+├── server/
+│   └── app.py                 OpenEnv multi-mode entry point
+├── inference.py               Baseline agent (OpenAI client)
+├── openenv.yaml               Environment manifest
+├── pyproject.toml             Package definition
+├── uv.lock                    Reproducible dependency lock
+└── Dockerfile
 ```
+
+<br>
+
+## OpenEnv compliance
+
+| Check | Status |
+|-------|:------:|
+| `openenv validate .` (local) | ✓ |
+| `openenv validate --url` (runtime) | ✓ |
+| Docker build | ✓ |
+| Multi-mode deployment (`docker`, `uv_run`, `python_module`, `openenv_serve`) | ✓ |
+| Hugging Face Space deploys | ✓ |
+| `/health`, `/metadata`, `/schema`, `/mcp`, `/reset`, `/step`, `/state` | ✓ |
+| Typed Pydantic action / observation / state | ✓ |
+| Deterministic grader, strictly `(0, 1)` | ✓ |
+| Baseline `inference.py` with `[START]/[STEP]/[END]` markers | ✓ |
+
+<br>
 
 ## Team
 
-**Team CookHouse** — Sai Jadhav & Sameer S Katte
+**Team CookHouse**
+Sai Jadhav · Sameer S Katte
 
-Built for the Meta PyTorch OpenEnv Hackathon.
+Built for the [Meta PyTorch OpenEnv Hackathon](https://pytorch.org/event/openenv-ai-hackathon/), Round 1.
+
+<br>
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+<br>
+
+---
+
+<div align="center">
+
+*An agent that cannot review code at the level of a senior engineer*
+*cannot be trusted to write it.*
+
+**SecureReview is the benchmark that holds it to that bar.**
+
+<br>
+
+</div>
