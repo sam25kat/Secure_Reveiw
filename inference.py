@@ -12,10 +12,16 @@ MANDATORY environment variables:
 
 import os
 import re
+import sys
 import json
 import time
+import functools
 import requests as http_requests
 from openai import OpenAI
+
+# All print calls flush stdout immediately so the validator can parse
+# [START]/[STEP]/[END] markers in real time.
+print = functools.partial(print, flush=True)
 
 # === Configuration ===
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
@@ -221,7 +227,14 @@ def parse_action(text: str) -> dict:
 
 
 def run_episode(task_id: str, scenario_id: str = None) -> float:
-    """Run a single episode and return the final score."""
+    """Run a single episode and return the final score.
+
+    Emits ``[START]``, ``[STEP]``, and ``[END]`` markers on stdout for
+    the validator to parse.
+    """
+    # === [START] marker ===
+    print(f"[START] task={task_id}")
+
     reset_body = {"task_id": task_id}
     if scenario_id:
         reset_body["scenario_id"] = scenario_id
@@ -266,8 +279,10 @@ def run_episode(task_id: str, scenario_id: str = None) -> float:
         observation = step_data["observation"]
         done = step_data["done"]
         step_count += 1
+        reward_val = step_data.get("reward", 0.0) or 0.0
+        final_score = reward_val
+        print(f"[STEP] step={step_count} reward={reward_val}")
         if done:
-            final_score = step_data["reward"]
             break
 
     # Main agent loop
@@ -310,13 +325,16 @@ def run_episode(task_id: str, scenario_id: str = None) -> float:
 
         observation = step_data["observation"]
         done = step_data["done"]
-        final_score = step_data["reward"]
+        reward_val = step_data.get("reward", 0.0) or 0.0
+        final_score = reward_val
         step_count += 1
+        print(f"[STEP] step={step_count} reward={reward_val}")
 
         # Small delay to avoid rate limiting
         time.sleep(0.3)
 
-    print(f"    Steps: {step_count}, Score: {final_score}")
+    # === [END] marker ===
+    print(f"[END] task={task_id} score={final_score} steps={step_count}")
     return final_score
 
 
