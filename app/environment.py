@@ -1,3 +1,4 @@
+import random
 from typing import Dict, List, Optional, Tuple, Any
 
 from app.models import (
@@ -16,6 +17,17 @@ GRADER_MAP: Dict[str, BaseGrader] = {
     "iac_review": IaCGrader(),
     "migration_review": MigrationGrader(),
 }
+
+# Rolling average thresholds for adaptive task selection.
+# If rolling avg < 0.30 → easy (dependency), < 0.60 → medium (iac), else → hard (migration).
+_ADAPTIVE_THRESHOLDS = [
+    (0.30, "dependency_review"),
+    (0.60, "iac_review"),
+]
+_ADAPTIVE_FALLBACK_TASK = "migration_review"
+
+_SCORE_HISTORY_WINDOW = 5   # scores used for rolling average
+_SCORE_HISTORY_MAX = 20     # total scores retained
 
 
 class EpisodeState:
@@ -45,20 +57,35 @@ class SecureReviewEnvironment:
     def __init__(self):
         self.registry = TaskRegistry()
         self._state: Optional[EpisodeState] = None
+        self._score_history: List[float] = []
 
     def get_tasks(self) -> List[TaskInfo]:
         return self.registry.get_tasks()
 
     def reset(
-        self, task_id: str, scenario_id: Optional[str] = None
+        self,
+        task_id: Optional[str] = None,
+        scenario_id: Optional[str] = None,
+        adaptive: bool = False,
     ) -> Tuple[Observation, Dict[str, Any]]:
-        task_info = self.registry.get_task_info(task_id)
-
-        if scenario_id:
-            scenario = self.registry.get_scenario(task_id, scenario_id)
+        # Adaptive mode: auto-select task and scenario tier based on score history.
+        if adaptive:
+            if task_id is None:
+                task_id = self._get_adaptive_task_id()
+            if scenario_id is None:
+                tier = self._get_adaptive_tier()
+                scenario = self._get_scenario_for_tier(task_id, tier)
+            else:
+                scenario = self.registry.get_scenario(task_id, scenario_id)
         else:
-            scenario = self.registry.get_random_scenario(task_id)
+            if task_id is None:
+                task_id = "dependency_review"
+            if scenario_id:
+                scenario = self.registry.get_scenario(task_id, scenario_id)
+            else:
+                scenario = self.registry.get_random_scenario(task_id)
 
+        task_info = self.registry.get_task_info(task_id)
         self._state = EpisodeState(
             task_id=task_id,
             task_info=task_info,
@@ -71,6 +98,7 @@ class SecureReviewEnvironment:
             "scenario_id": scenario.scenario_id,
             "difficulty": task_info.difficulty.value,
             "max_steps": task_info.max_steps,
+            "adaptive": adaptive,
         }
         return observation, info
 
@@ -102,9 +130,7 @@ class SecureReviewEnvironment:
 
         # Check step budget
         if state.current_step >= state.max_steps and not state.done:
-            return self._finish_episode(
-                state, info, "Step budget exhausted."
-            )
+            return self._finish_episode(state, info, "Step budget exhausted.")
 
         observation = self._build_observation()
         return observation, reward, state.done, info
@@ -123,6 +149,87 @@ class SecureReviewEnvironment:
             "revealed_files": list(state.revealed_files.keys()),
             "final_score": state.final_reward.score if state.final_reward else None,
         }
+
+    def get_curriculum(self) -> Dict[str, Any]:
+        """Return the adaptive curriculum state for the /curriculum endpoint."""
+        recent = self._score_history[-_SCORE_HISTORY_WINDOW:]
+        rolling_avg = sum(recent) / len(recent) if recent else 0.0
+        task_id = self._get_adaptive_task_id()
+
+        # Determine human-readable skill level and next threshold.
+        if rolling_avg < 0.30:
+            skill_level = "easy"
+            next_threshold = 0.30
+        elif rolling_avg < 0.60:
+            skill_level = "medium"
+            next_threshold = 0.60
+        else:
+            skill_level = "hard"
+            next_threshold = None
+
+        progress_pct: Optional[int] = None
+        if next_threshold is not None:
+            lower = 0.0 if skill_level == "easy" else 0.30
+            span = next_threshold - lower
+            progress_pct = min(100, int((rolling_avg - lower) / span * 100)) if span > 0 else 0
+
+        return {
+            "episodes_completed": len(self._score_history),
+            "rolling_average": round(rolling_avg, 3),
+            "current_skill_level": skill_level,
+            "recommended_task": task_id,
+            "recent_scores": [round(s, 3) for s in recent],
+            "next_tier_threshold": next_threshold,
+            "progress_pct": progress_pct,
+        }
+
+    # ------------------------------------------------------------------
+    # Adaptive curriculum helpers
+    # ------------------------------------------------------------------
+
+    def _get_adaptive_task_id(self) -> str:
+        """Return task_id based on rolling average of recent scores."""
+        recent = self._score_history[-_SCORE_HISTORY_WINDOW:]
+        if not recent:
+            return "dependency_review"
+        avg = sum(recent) / len(recent)
+        for threshold, task_id in _ADAPTIVE_THRESHOLDS:
+            if avg < threshold:
+                return task_id
+        return _ADAPTIVE_FALLBACK_TASK
+
+    def _get_adaptive_tier(self) -> int:
+        """Return scenario difficulty tier (1/2/3) based on rolling average."""
+        recent = self._score_history[-_SCORE_HISTORY_WINDOW:]
+        if not recent:
+            return 1
+        avg = sum(recent) / len(recent)
+        if avg < 0.30:
+            return 1
+        if avg < 0.60:
+            return 2
+        return 3
+
+    @staticmethod
+    def _get_scenario_tier(scenario: ScenarioConfig) -> int:
+        """Compute scenario difficulty tier from number of ground-truth findings."""
+        n = len(scenario.ground_truth)
+        if n <= 3:
+            return 1
+        if n <= 5:
+            return 2
+        return 3
+
+    def _get_scenario_for_tier(self, task_id: str, target_tier: int) -> ScenarioConfig:
+        """Pick a scenario matching target_tier; fall back to random if none match."""
+        scenarios = list(self.registry._scenarios[task_id].values())
+        matching = [s for s in scenarios if self._get_scenario_tier(s) == target_tier]
+        pool = matching if matching else scenarios
+        return random.choice(pool)
+
+    # ------------------------------------------------------------------
+    # Episode internals
+    # ------------------------------------------------------------------
 
     def _handle_report_finding(
         self, action: Action, state: EpisodeState
@@ -192,6 +299,11 @@ class SecureReviewEnvironment:
         )
         state.final_reward = reward_result
         state.last_feedback = f"{reason} Final score: {reward_result.score}"
+
+        # Record score for adaptive curriculum.
+        self._score_history.append(reward_result.score)
+        if len(self._score_history) > _SCORE_HISTORY_MAX:
+            self._score_history = self._score_history[-_SCORE_HISTORY_MAX:]
 
         info["reward_breakdown"] = reward_result.breakdown
         info["final_score"] = reward_result.score

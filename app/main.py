@@ -140,17 +140,29 @@ async def get_tasks():
     return env.get_tasks()
 
 
+@app.get("/curriculum")
+async def curriculum():
+    """Adaptive curriculum state — current skill level, recommended task, score history."""
+    return env.get_curriculum()
+
+
 @app.post("/reset", response_model=ResetResponse)
 async def reset(request: Optional[ResetRequest] = None):
-    """Reset the environment. Body is optional; defaults to dependency_review task."""
+    """Reset the environment. Body is optional; defaults to dependency_review task.
+
+    Pass ``adaptive: true`` to let the environment auto-select the task and
+    scenario difficulty based on the agent's recent performance history.
+    """
     try:
         if request is None:
             task_id = DEFAULT_TASK_ID
             scenario_id = None
+            adaptive = False
         else:
-            task_id = request.task_id or DEFAULT_TASK_ID
+            task_id = request.task_id or DEFAULT_TASK_ID if not request.adaptive else request.task_id
             scenario_id = request.scenario_id
-        observation, info = env.reset(task_id, scenario_id)
+            adaptive = request.adaptive
+        observation, info = env.reset(task_id, scenario_id, adaptive=adaptive)
         return ResetResponse(observation=observation, info=info)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

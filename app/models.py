@@ -79,6 +79,7 @@ class Reward(BaseModel):
 class ResetRequest(BaseModel):
     task_id: Optional[str] = None
     scenario_id: Optional[str] = None
+    adaptive: bool = False
 
 
 class StepRequest(BaseModel):
