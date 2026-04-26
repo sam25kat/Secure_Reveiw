@@ -84,7 +84,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 120px;
+    padding-bottom: 80px;
   }
 
   .brand {
@@ -137,7 +137,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
 
   /* HERO */
   .hero {
-    padding-bottom: 140px;
+    padding-bottom: 80px;
     max-width: 820px;
   }
 
@@ -243,7 +243,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
 
   /* THESIS */
   .thesis {
-    margin-bottom: 120px;
+    margin-bottom: 80px;
     padding: 60px 0;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
@@ -288,7 +288,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
-    margin-bottom: 160px;
+    margin-bottom: 80px;
     border-radius: 2px;
     overflow: hidden;
   }
@@ -323,7 +323,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
 
   /* SECTIONS */
   section {
-    margin-bottom: 140px;
+    margin-bottom: 80px;
   }
 
   .section-head {
@@ -718,20 +718,13 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
     <section class="hero">
       <div class="eyebrow">The Agent Review Benchmark · Built for the Meta × Hugging Face OpenEnv Hackathon, India 2026 · by ~The Cook House</div>
       <h1>Security review,<br><em>for the age of AI.</em></h1>
-      <p>The first evaluation harness that holds AI agents to the bar of a senior engineer at code review. Three domains, 76 hand-crafted scenarios, 430 production-grade vulnerabilities — deterministic and reproducible.</p>
+      <p><strong>AI writes the code. Who reviews it?</strong> SecureReview is the first OpenEnv harness that trains and grades agents on real security review — supply chain, infrastructure-as-code, and database migrations.</p>
       <div class="hero-cta">
-        <a class="btn primary" href="#results">View Training Results <span class="btn-arrow">→</span></a>
+        <a class="btn primary" href="#results">See Training Results <span class="btn-arrow">→</span></a>
         <a class="btn" href="#tasks">View Benchmark</a>
-        <a class="btn" href="/docs">API Docs</a>
+        <a class="btn" href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Read the Blog ↗</a>
       </div>
     </section>
-
-    <div class="thesis">
-      <div class="thesis-label">— Thesis</div>
-      <div class="thesis-body">
-        AI now authors a generation of production code. <span class="muted">Review&nbsp;is&nbsp;the bottleneck&nbsp;— not&nbsp;authorship.</span> <strong>An agent that cannot review code at the level of a senior engineer cannot be trusted to write it.</strong>
-      </div>
-    </div>
 
     <div class="stats">
       <div class="stat">
@@ -747,14 +740,40 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <div class="stat-label">Vulnerabilities</div>
       </div>
       <div class="stat">
-        <div class="stat-number">0.98</div>
-        <div class="stat-label">Oracle Score</div>
+        <div class="stat-number">+0.24</div>
+        <div class="stat-label">Mean Lift After Training</div>
       </div>
     </div>
 
+    <section id="results">
+      <div class="section-head">
+        <div class="section-index">01 / RESULTS</div>
+        <h2 class="section-title">SFT → GRPO hybrid training. <em>Real lift on every domain.</em></h2>
+      </div>
+      <div class="results-headline">
+        <div class="result-cell"><div class="result-num">+0.302</div><div class="result-label">Dependency · 20/24 wins · 0.083 → 0.385</div></div>
+        <div class="result-cell"><div class="result-num">+0.295</div><div class="result-label">Migration · 10/12 wins · 0.170 → 0.465</div></div>
+        <div class="result-cell"><div class="result-num">+0.126</div><div class="result-label">IaC · 6/13 wins · 0.177 → 0.303</div></div>
+      </div>
+      <div class="result-plots">
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/dep/before_after.png" alt="Dependency review — before vs after SFT" />
+          <figcaption>Dependency · 24 scenarios. Standout: dep_015 0.02 → 0.93.</figcaption>
+        </figure>
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/migration/before_after.png" alt="Migration review — before vs after SFT" />
+          <figcaption>Migration · 12 curriculum-filtered scenarios. Standout: migration_025 0.06 → 0.64.</figcaption>
+        </figure>
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/iac/before_after.png" alt="IaC review — before vs after SFT" />
+          <figcaption>IaC · 13 scenarios. Standout: iac_010 0.01 → 0.76.</figcaption>
+        </figure>
+      </div>
+    </section>
+
     <section id="tasks">
       <div class="section-head">
-        <div class="section-index">01 / BENCHMARK</div>
+        <div class="section-index">02 / BENCHMARK</div>
         <h2 class="section-title">Three domains, three difficulties, <em>one standard.</em></h2>
       </div>
       <div class="tasks">
@@ -762,7 +781,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
           <div class="task-num">I.</div>
           <div class="task-body">
             <h3>Dependency &amp; Supply Chain Security</h3>
-            <p>Identify typosquatted packages, hallucinated imports that do not exist on PyPI, and pinned versions with active CVEs. Tests the baseline of supply-chain literacy every reviewer should have.</p>
+            <p>Typosquats, hallucinated PyPI imports, pinned CVEs. Supply-chain literacy.</p>
             <div class="task-meta">
               <span>24 Scenarios</span>
               <span>15 Steps</span>
@@ -774,8 +793,8 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <div class="task">
           <div class="task-num">II.</div>
           <div class="task-body">
-            <h3>Infrastructure-as-Code Misconfiguration Detection</h3>
-            <p>Catch CIS-benchmark violations in Terraform and Kubernetes&nbsp;— public buckets, wildcard IAM, missing encryption, cross-account trust, privileged containers. Tests multi-file cloud security reasoning.</p>
+            <h3>Infrastructure-as-Code Misconfiguration</h3>
+            <p>CIS violations in Terraform / K8s — public buckets, wildcard IAM, privileged containers. Multi-file cloud reasoning.</p>
             <div class="task-meta">
               <span>24 Scenarios</span>
               <span>25 Steps</span>
@@ -787,8 +806,8 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <div class="task">
           <div class="task-num">III.</div>
           <div class="task-body">
-            <h3>Database Migration Safety Analysis</h3>
-            <p>Reason about SQL migrations against live production context&nbsp;— table sizes, write throughput, deployment strategy, downstream services. Tests the hardest form of review: judgment.</p>
+            <h3>Database Migration Safety</h3>
+            <p>SQL migrations against live production context — table sizes, write throughput, downstream services. Judgment, not lint.</p>
             <div class="task-meta">
               <span>28 Scenarios</span>
               <span>35 Steps</span>
@@ -800,97 +819,16 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       </div>
     </section>
 
-    <section id="api">
-      <div class="section-head">
-        <div class="section-index">02 / INTERFACE</div>
-        <h2 class="section-title">A gymnasium-style contract. <em>Nothing more.</em></h2>
+    <div class="thesis">
+      <div class="thesis-label">— Thesis</div>
+      <div class="thesis-body">
+        AI now authors a generation of production code. <span class="muted">Review&nbsp;is&nbsp;the bottleneck&nbsp;— not&nbsp;authorship.</span> <strong>An agent that cannot review code at the level of a senior engineer cannot be trusted to write it.</strong>
       </div>
-      <div class="endpoints">
-        <a class="endpoint" href="/health">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/health</span></div>
-          <span class="endpoint-desc">health</span>
-        </a>
-        <a class="endpoint" href="/tasks">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/tasks</span></div>
-          <span class="endpoint-desc">list tasks</span>
-        </a>
-        <a class="endpoint" href="/metadata">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/metadata</span></div>
-          <span class="endpoint-desc">metadata</span>
-        </a>
-        <a class="endpoint" href="/schema">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/schema</span></div>
-          <span class="endpoint-desc">json schemas</span>
-        </a>
-        <a class="endpoint" href="/docs">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/docs</span></div>
-          <span class="endpoint-desc">openapi</span>
-        </a>
-        <div class="endpoint">
-          <div class="endpoint-left"><span class="method get">GET</span><span class="path">/state</span></div>
-          <span class="endpoint-desc">episode state</span>
-        </div>
-        <div class="endpoint">
-          <div class="endpoint-left"><span class="method post">POST</span><span class="path">/reset</span></div>
-          <span class="endpoint-desc">start episode</span>
-        </div>
-        <div class="endpoint">
-          <div class="endpoint-left"><span class="method post">POST</span><span class="path">/step</span></div>
-          <span class="endpoint-desc">execute action</span>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <div class="section-index">03 / QUICKSTART</div>
-        <h2 class="section-title">Six lines. <em>A full episode.</em></h2>
-      </div>
-      <div class="code-wrap">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span>terminal</span>
-        </div>
-<pre class="code"><span class="c"># Start a dependency review episode</span>
-<span class="f">curl</span> -X POST <span class="s">https://sam25kat-securereview.hf.space/reset</span> \\
-  -H <span class="s">"Content-Type: application/json"</span> \\
-  -d <span class="s">'{"task_id": "dependency_review"}'</span>
-
-<span class="c"># Report findings, then mark complete for grading</span>
-<span class="f">curl</span> -X POST <span class="s">https://sam25kat-securereview.hf.space/step</span> \\
-  -d <span class="s">'{"action": {"action_type": "mark_complete"}}'</span></pre>
-      </div>
-    </section>
-
-    <section id="results">
-      <div class="section-head">
-        <div class="section-index">04 / RESULTS</div>
-        <h2 class="section-title">SFT → GRPO hybrid training. <em>Real lift on every domain.</em></h2>
-      </div>
-      <div class="results-headline">
-        <div class="result-cell"><div class="result-num">+0.302</div><div class="result-label">Dependency · 20/24 wins</div></div>
-        <div class="result-cell"><div class="result-num">+0.295</div><div class="result-label">Migration · 10/12 wins</div></div>
-        <div class="result-cell"><div class="result-num">+0.126</div><div class="result-label">IaC · 6/13 wins</div></div>
-      </div>
-      <div class="result-plots">
-        <figure>
-          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/dep/before_after.png" alt="Dependency review — before vs after SFT" />
-          <figcaption>Dependency · 0.083 → 0.385 across 24 scenarios. Standout: dep_015 0.02 → 0.93.</figcaption>
-        </figure>
-        <figure>
-          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/migration/before_after.png" alt="Migration review — before vs after SFT" />
-          <figcaption>Migration · 0.170 → 0.465 across 12 curriculum-filtered scenarios.</figcaption>
-        </figure>
-        <figure>
-          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/iac/before_after.png" alt="IaC review — before vs after SFT" />
-          <figcaption>IaC · 0.177 → 0.303 across 13 scenarios. Standout: iac_010 0.01 → 0.76.</figcaption>
-        </figure>
-      </div>
-    </section>
+    </div>
 
     <section id="resources">
       <div class="section-head">
-        <div class="section-index">05 / RESOURCES</div>
+        <div class="section-index">03 / RESOURCES</div>
         <h2 class="section-title">Everything in one place. <em>For judges &amp; replicators.</em></h2>
       </div>
       <div class="endpoints">
@@ -926,6 +864,38 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
           <div class="endpoint-left"><span class="method get">CODE</span><span class="path">github.com/sam25kat/Secure_Reveiw</span></div>
           <span class="endpoint-desc">full source ↗</span>
         </a>
+        <a class="endpoint" href="/docs" target="_blank">
+          <div class="endpoint-left"><span class="method get">API</span><span class="path">OpenAPI / Swagger</span></div>
+          <span class="endpoint-desc">interactive docs ↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="api">
+      <div class="section-head">
+        <div class="section-index">04 / OPENENV INTERFACE</div>
+        <h2 class="section-title">Standard gym-style endpoints. <em>Plus a six-line quickstart.</em></h2>
+      </div>
+      <div class="endpoints" style="margin-bottom: 28px;">
+        <a class="endpoint" href="/health"><div class="endpoint-left"><span class="method get">GET</span><span class="path">/health</span></div><span class="endpoint-desc">health</span></a>
+        <a class="endpoint" href="/tasks"><div class="endpoint-left"><span class="method get">GET</span><span class="path">/tasks</span></div><span class="endpoint-desc">list tasks</span></a>
+        <a class="endpoint" href="/metadata"><div class="endpoint-left"><span class="method get">GET</span><span class="path">/metadata</span></div><span class="endpoint-desc">metadata</span></a>
+        <a class="endpoint" href="/docs"><div class="endpoint-left"><span class="method get">GET</span><span class="path">/docs</span></div><span class="endpoint-desc">openapi</span></a>
+        <div class="endpoint"><div class="endpoint-left"><span class="method post">POST</span><span class="path">/reset</span></div><span class="endpoint-desc">start episode</span></div>
+        <div class="endpoint"><div class="endpoint-left"><span class="method post">POST</span><span class="path">/step</span></div><span class="endpoint-desc">execute action</span></div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>terminal — full episode in 6 lines</span>
+        </div>
+<pre class="code"><span class="c"># 1. start a dependency review episode</span>
+<span class="f">curl</span> -X POST <span class="s">https://sam25kat-securereview.hf.space/reset</span> \\
+  -d <span class="s">'{"task_id": "dependency_review"}'</span>
+
+<span class="c"># 2. mark complete to receive the F1-graded reward</span>
+<span class="f">curl</span> -X POST <span class="s">https://sam25kat-securereview.hf.space/step</span> \\
+  -d <span class="s">'{"action": {"action_type": "mark_complete"}}'</span></pre>
       </div>
     </section>
 
