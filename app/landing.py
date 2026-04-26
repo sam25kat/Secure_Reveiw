@@ -563,6 +563,66 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
   .code .k { color: var(--accent); }
   .code .f { color: var(--text); }
 
+  /* SCENES */
+  .scenes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .scene {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+  }
+  .scene-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .scene-domain {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .scene-file {
+    color: var(--text-subtle);
+  }
+  pre.scene-code {
+    margin: 0;
+    padding: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    overflow-x: auto;
+    flex: 1;
+    background: #000;
+  }
+  .scene-code .c { color: var(--text-subtle); font-style: italic; }
+  .scene-code .s { color: var(--cyan); }
+  .scene-code .bad { color: #ff7b6b; font-weight: 500; }
+  .scene-code .annot { color: var(--text-subtle); font-style: italic; }
+  .scene-foot {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .scene-foot strong {
+    color: var(--text);
+  }
+  @media (max-width: 1100px) {
+    .scenes { grid-template-columns: 1fr; }
+  }
+
   /* RESULTS */
   .results-headline {
     display: grid;
@@ -706,10 +766,10 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         SECUREREVIEW <span class="nav-version">v1.0.0</span>
       </div>
       <div class="nav-links">
-        <a href="#tasks">Tasks</a>
         <a href="#results">Results</a>
+        <a href="#scenes">Scenes</a>
+        <a href="#tasks">Tasks</a>
         <a href="#resources">Resources</a>
-        <a href="#api">API</a>
         <a href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md">Blog ↗</a>
         <a href="https://github.com/sam25kat/Secure_Reveiw">GitHub ↗</a>
       </div>
@@ -771,9 +831,79 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       </div>
     </section>
 
+    <section id="scenes">
+      <div class="section-head">
+        <div class="section-index">02 / WHAT THE AGENT REVIEWS</div>
+        <h2 class="section-title">Three real scenes. <em>Three real failure modes.</em></h2>
+      </div>
+      <div class="scenes">
+        <div class="scene">
+          <div class="scene-head">
+            <span class="scene-domain">DEPENDENCY</span>
+            <span class="scene-file">requirements.txt · dep_010</span>
+          </div>
+<pre class="scene-code"><span class="c"># Suggested by LLM during code generation</span>
+openai==1.3.0
+<span class="bad">langchain-utils==0.5.2</span>      <span class="annot">← hallucinated, not on PyPI</span>
+<span class="bad">streamlit-helpers==0.3.1</span>    <span class="annot">← slopsquat opportunity</span>
+<span class="bad">torch-helpers==1.9.0</span>        <span class="annot">← real pkg is "torch"</span>
+<span class="bad">chromadb-client==0.4.5</span>      <span class="annot">← real pkg is "chromadb"</span>
+<span class="bad">embedding-models==2.1.0</span>     <span class="annot">← does not exist</span>
+<span class="bad">vector-store==1.2.3</span>         <span class="annot">← does not exist</span>
+<span class="bad">ai-toolkit==0.8.0</span>           <span class="annot">← generic squat target</span></pre>
+          <div class="scene-foot">Agent must catch <strong>7 hallucinated packages</strong> · 6 critical, 1 high.</div>
+        </div>
+
+        <div class="scene">
+          <div class="scene-head">
+            <span class="scene-domain">IAC</span>
+            <span class="scene-file">main.tf · iac_015</span>
+          </div>
+<pre class="scene-code">resource <span class="s">"aws_security_group"</span> <span class="s">"db"</span> {
+  ingress {
+    <span class="bad">cidr_blocks = ["0.0.0.0/0"]</span>   <span class="annot">← Postgres open to internet</span>
+  }
+}
+resource <span class="s">"aws_db_instance"</span> <span class="s">"analytics"</span> {
+  username                = <span class="s">"admin"</span>
+  <span class="bad">password                = "Sup3rSecret!2023"</span>  <span class="annot">← in TF state</span>
+  <span class="bad">publicly_accessible     = true</span>            <span class="annot">← public RDS</span>
+  <span class="bad">storage_encrypted       = false</span>           <span class="annot">← unencrypted</span>
+  <span class="bad">backup_retention_period = 0</span>               <span class="annot">← no PITR</span>
+}
+resource <span class="s">"aws_s3_bucket"</span> <span class="s">"exports"</span> {
+  <span class="bad">acl = "public-read"</span>                         <span class="annot">← public bucket</span>
+}</pre>
+          <div class="scene-foot">Agent must catch <strong>6 misconfigurations</strong> · network exposure, encryption, credentials, backup posture.</div>
+        </div>
+
+        <div class="scene">
+          <div class="scene-head">
+            <span class="scene-domain">MIGRATION</span>
+            <span class="scene-file">migration_007.sql · 4.2B-row telemetry table</span>
+          </div>
+<pre class="scene-code"><span class="c">-- table: 4.2B rows · 1.4k writes/sec</span>
+<span class="c">-- deploy: rolling, 0s downtime budget</span>
+
+<span class="bad">CREATE INDEX</span> idx_dev_metric_time   <span class="annot">← no CONCURRENTLY</span>
+    ON telemetry_records(device_id, metric, recorded_at);
+
+ALTER TABLE telemetry_records
+    SET (<span class="bad">fillfactor = 100</span>);              <span class="annot">← kills HOT updates</span>
+
+<span class="bad">CLUSTER</span> telemetry_records              <span class="annot">← AccessExclusiveLock</span>
+    USING idx_dev_metric_time;             <span class="annot">on a 4B-row table</span>
+
+CREATE INDEX idx_payload
+    ON telemetry_records USING <span class="bad">gin(tags)</span>;  <span class="annot">← no jsonb_path_ops</span></pre>
+          <div class="scene-foot">Agent must catch <strong>5 issues</strong> incl. blocking CLUSTER on 4B rows during a zero-downtime deploy. <em>Senior-engineer judgment, not lint.</em></div>
+        </div>
+      </div>
+    </section>
+
     <section id="tasks">
       <div class="section-head">
-        <div class="section-index">02 / BENCHMARK</div>
+        <div class="section-index">03 / BENCHMARK</div>
         <h2 class="section-title">Three domains, three difficulties, <em>one standard.</em></h2>
       </div>
       <div class="tasks">
@@ -828,7 +958,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
 
     <section id="resources">
       <div class="section-head">
-        <div class="section-index">03 / RESOURCES</div>
+        <div class="section-index">04 / RESOURCES</div>
         <h2 class="section-title">Everything in one place. <em>For judges &amp; replicators.</em></h2>
       </div>
       <div class="endpoints">
@@ -873,7 +1003,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
 
     <section id="api">
       <div class="section-head">
-        <div class="section-index">04 / OPENENV INTERFACE</div>
+        <div class="section-index">05 / OPENENV INTERFACE</div>
         <h2 class="section-title">Standard gym-style endpoints. <em>Plus a six-line quickstart.</em></h2>
       </div>
       <div class="endpoints" style="margin-bottom: 28px;">
