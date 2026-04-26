@@ -563,6 +563,61 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
   .code .k { color: var(--accent); }
   .code .f { color: var(--text); }
 
+  /* RESULTS */
+  .results-headline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .result-cell {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    background: var(--bg-card, rgba(255, 255, 255, 0.02));
+  }
+  .result-num {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .result-label {
+    margin-top: 8px;
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .result-plots {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+  .result-plots figure {
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+  }
+  .result-plots img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .result-plots figcaption {
+    padding: 12px 18px;
+    color: var(--text-dim);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 760px) {
+    .results-headline { grid-template-columns: 1fr; }
+  }
+
   /* FOOTER */
   footer {
     margin-top: 40px;
@@ -652,8 +707,10 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       </div>
       <div class="nav-links">
         <a href="#tasks">Tasks</a>
+        <a href="#results">Results</a>
+        <a href="#resources">Resources</a>
         <a href="#api">API</a>
-        <a href="/docs">Docs</a>
+        <a href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Blog ↗</a>
         <a href="https://github.com/sam25kat/Secure_Reveiw">GitHub ↗</a>
       </div>
     </nav>
@@ -663,8 +720,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       <h1>Security review,<br><em>for the age of AI.</em></h1>
       <p>The first evaluation harness that holds AI agents to the bar of a senior engineer at code review. Three domains, 76 hand-crafted scenarios, 430 production-grade vulnerabilities — deterministic and reproducible.</p>
       <div class="hero-cta">
-        <a class="btn primary" href="/docs">Explore the API <span class="btn-arrow">→</span></a>
+        <a class="btn primary" href="#results">View Training Results <span class="btn-arrow">→</span></a>
         <a class="btn" href="#tasks">View Benchmark</a>
+        <a class="btn" href="/docs">API Docs</a>
       </div>
     </section>
 
@@ -804,14 +862,83 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       </div>
     </section>
 
+    <section id="results">
+      <div class="section-head">
+        <div class="section-index">04 / RESULTS</div>
+        <h2 class="section-title">SFT → GRPO hybrid training. <em>Real lift on every domain.</em></h2>
+      </div>
+      <div class="results-headline">
+        <div class="result-cell"><div class="result-num">+0.302</div><div class="result-label">Dependency · 20/24 wins</div></div>
+        <div class="result-cell"><div class="result-num">+0.295</div><div class="result-label">Migration · 10/12 wins</div></div>
+        <div class="result-cell"><div class="result-num">+0.126</div><div class="result-label">IaC · 6/13 wins</div></div>
+      </div>
+      <div class="result-plots">
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/dep/before_after.png" alt="Dependency review — before vs after SFT" />
+          <figcaption>Dependency · 0.083 → 0.385 across 24 scenarios. Standout: dep_015 0.02 → 0.93.</figcaption>
+        </figure>
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/migration/before_after.png" alt="Migration review — before vs after SFT" />
+          <figcaption>Migration · 0.170 → 0.465 across 12 curriculum-filtered scenarios.</figcaption>
+        </figure>
+        <figure>
+          <img src="https://huggingface.co/spaces/sam25kat/securereview/resolve/main/training_results/plots/iac/before_after.png" alt="IaC review — before vs after SFT" />
+          <figcaption>IaC · 0.177 → 0.303 across 13 scenarios. Standout: iac_010 0.01 → 0.76.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="resources">
+      <div class="section-head">
+        <div class="section-index">05 / RESOURCES</div>
+        <h2 class="section-title">Everything in one place. <em>For judges &amp; replicators.</em></h2>
+      </div>
+      <div class="endpoints">
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1" target="_blank">
+          <div class="endpoint-left"><span class="method get">BLOG</span><span class="path">Submission writeup</span></div>
+          <span class="endpoint-desc">on HF community ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/training_results/RESULTS.md" target="_blank">
+          <div class="endpoint-left"><span class="method get">DOC</span><span class="path">RESULTS.md</span></div>
+          <span class="endpoint-desc">full training story ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/training_results/SCENARIOS.md" target="_blank">
+          <div class="endpoint-left"><span class="method get">DOC</span><span class="path">SCENARIOS.md</span></div>
+          <span class="endpoint-desc">all 76 scenarios indexed ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/tree/main/training_results/plots" target="_blank">
+          <div class="endpoint-left"><span class="method get">PLOTS</span><span class="path">/training_results/plots</span></div>
+          <span class="endpoint-desc">PNGs + results.json ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview-trainer" target="_blank">
+          <div class="endpoint-left"><span class="method post">RUN</span><span class="path">securereview-trainer</span></div>
+          <span class="endpoint-desc">dependency · one-click ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview-trainer-migration" target="_blank">
+          <div class="endpoint-left"><span class="method post">RUN</span><span class="path">securereview-trainer-migration</span></div>
+          <span class="endpoint-desc">migration · one-click ↗</span>
+        </a>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview-trainer-iac" target="_blank">
+          <div class="endpoint-left"><span class="method post">RUN</span><span class="path">securereview-trainer-iac</span></div>
+          <span class="endpoint-desc">iac · one-click ↗</span>
+        </a>
+        <a class="endpoint" href="https://github.com/sam25kat/Secure_Reveiw" target="_blank">
+          <div class="endpoint-left"><span class="method get">CODE</span><span class="path">github.com/sam25kat/Secure_Reveiw</span></div>
+          <span class="endpoint-desc">full source ↗</span>
+        </a>
+      </div>
+    </section>
+
     <footer>
       <div class="footer-left">
         <div class="footer-brand">SECUREREVIEW × TEAM COOKHOUSE</div>
-        <div class="footer-tagline">Meta × PyTorch OpenEnv Hackathon · MMXXVI</div>
+        <div class="footer-tagline">Meta × Hugging Face OpenEnv Hackathon · India 2026</div>
       </div>
       <div class="footer-links">
         <a href="https://github.com/sam25kat/Secure_Reveiw">GitHub ↗</a>
         <a href="https://huggingface.co/spaces/sam25kat/securereview/tree/main">Source ↗</a>
+        <a href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/training_results/RESULTS.md">Results ↗</a>
+        <a href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Blog ↗</a>
         <a href="/docs">API ↗</a>
       </div>
     </footer>
