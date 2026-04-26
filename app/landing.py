@@ -659,9 +659,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
     </nav>
 
     <section class="hero">
-      <div class="eyebrow">The Agent Review Benchmark</div>
+      <div class="eyebrow">The Agent Review Benchmark · Built for the Meta × Hugging Face OpenEnv Hackathon, India 2026 · by ~The Cook House</div>
       <h1>Security review,<br><em>for the age of AI.</em></h1>
-      <p>The first evaluation harness that holds AI agents to the bar of a senior engineer at code review. Three domains, sixteen hand-crafted scenarios, seventy-two production-grade vulnerabilities — deterministic and reproducible.</p>
+      <p>The first evaluation harness that holds AI agents to the bar of a senior engineer at code review. Three domains, 76 hand-crafted scenarios, 430 production-grade vulnerabilities — deterministic and reproducible.</p>
       <div class="hero-cta">
         <a class="btn primary" href="/docs">Explore the API <span class="btn-arrow">→</span></a>
         <a class="btn" href="#tasks">View Benchmark</a>

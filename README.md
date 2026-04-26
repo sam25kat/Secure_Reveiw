@@ -28,6 +28,8 @@ short_description: The agent review benchmark for the age of AI.
 **The first evaluation harness that holds AI agents to the bar of a senior engineer at code review.**
 *Three domains. **76** hand-crafted scenarios. **430** production-grade vulnerabilities.*
 
+*Built for the **Meta × Hugging Face OpenEnv Hackathon** · India 2026 — by **~The Cook House**.*
+
 <br>
 
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-v1.0-0a0a0a?style=for-the-badge&labelColor=0a0a0a)](https://github.com/meta-pytorch/OpenEnv)

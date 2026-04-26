@@ -59,4 +59,4 @@ Click "Run Training" on any trainer Space — full SFT→GRPO hybrid pipeline, t
 
 ---
 
-*Built for the OpenEnv Hackathon 2026 (India). Submission round 2.*
+*Built for the **Meta × Hugging Face OpenEnv Hackathon**, India 2026 — by **~The Cook House**. Submission round 2.*
