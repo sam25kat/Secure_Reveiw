@@ -681,11 +681,11 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <div class="stat-label">Review Domains</div>
       </div>
       <div class="stat">
-        <div class="stat-number">16</div>
+        <div class="stat-number">76</div>
         <div class="stat-label">Scenarios</div>
       </div>
       <div class="stat">
-        <div class="stat-number">72</div>
+        <div class="stat-number">430</div>
         <div class="stat-label">Vulnerabilities</div>
       </div>
       <div class="stat">
@@ -706,9 +706,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
             <h3>Dependency &amp; Supply Chain Security</h3>
             <p>Identify typosquatted packages, hallucinated imports that do not exist on PyPI, and pinned versions with active CVEs. Tests the baseline of supply-chain literacy every reviewer should have.</p>
             <div class="task-meta">
-              <span>6 Scenarios</span>
+              <span>24 Scenarios</span>
               <span>15 Steps</span>
-              <span>25 Findings</span>
+              <span>120 Findings</span>
             </div>
           </div>
           <div class="task-badge">Easy</div>
@@ -719,9 +719,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
             <h3>Infrastructure-as-Code Misconfiguration Detection</h3>
             <p>Catch CIS-benchmark violations in Terraform and Kubernetes&nbsp;— public buckets, wildcard IAM, missing encryption, cross-account trust, privileged containers. Tests multi-file cloud security reasoning.</p>
             <div class="task-meta">
-              <span>6 Scenarios</span>
+              <span>24 Scenarios</span>
               <span>25 Steps</span>
-              <span>31 Findings</span>
+              <span>155 Findings</span>
             </div>
           </div>
           <div class="task-badge">Medium</div>
@@ -732,9 +732,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
             <h3>Database Migration Safety Analysis</h3>
             <p>Reason about SQL migrations against live production context&nbsp;— table sizes, write throughput, deployment strategy, downstream services. Tests the hardest form of review: judgment.</p>
             <div class="task-meta">
-              <span>4 Scenarios</span>
+              <span>28 Scenarios</span>
               <span>35 Steps</span>
-              <span>17 Findings</span>
+              <span>155 Findings</span>
             </div>
           </div>
           <div class="task-badge">Hard</div>

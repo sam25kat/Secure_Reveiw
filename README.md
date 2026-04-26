@@ -26,7 +26,7 @@ short_description: The agent review benchmark for the age of AI.
 ### *Security review, for the age of AI.*
 
 **The first evaluation harness that holds AI agents to the bar of a senior engineer at code review.**
-*Three domains. Sixteen hand-crafted scenarios. Seventy-two production-grade vulnerabilities.*
+*Three domains. **76** hand-crafted scenarios. **430** production-grade vulnerabilities.*
 
 <br>
 
@@ -84,7 +84,7 @@ Identify typosquatted packages, hallucinated imports that do not exist on PyPI, 
 Tests the baseline of supply-chain literacy every reviewer should have.
 
 `requirements.txt` · `package.json`
-**6 scenarios · 25 findings · 15 steps**
+**24 scenarios · 120 findings · 15 steps**
 
 ##### Easy
 
@@ -98,7 +98,7 @@ Catch CIS-benchmark violations in Terraform and Kubernetes — public buckets, w
 Tests multi-file cloud security reasoning.
 
 Terraform `.tf` · Kubernetes YAML
-**6 scenarios · 31 findings · 25 steps**
+**24 scenarios · 155 findings · 25 steps**
 
 ##### Medium
 
@@ -112,7 +112,7 @@ Reason about SQL migrations against live production context — table sizes, wri
 Tests the hardest form of review: **judgment**.
 
 Schema · migrations · app code
-**4 scenarios · 17 findings · 35 steps**
+**28 scenarios · 155 findings · 35 steps**
 
 ##### Hard
 
@@ -149,8 +149,8 @@ Schema · migrations · app code
                                         ▼                      ▼
                                ┌─────────────────┐   ┌──────────────────┐
                                │ Task Registry   │   │ Deterministic    │
-                               │ 16 scenarios    │   │ F1 Grader        │
-                               │ 72 findings     │   │ (task-specific)  │
+                               │ 76 scenarios    │   │ F1 Grader        │
+                               │ 430 findings    │   │ (task-specific)  │
                                └─────────────────┘   └──────────────────┘
 ```
 
@@ -350,10 +350,10 @@ securereview/
 │   │   └── migration_grader.py
 │   └── tasks/
 │       ├── task_registry.py   Scenario discovery
-│       └── scenarios/         16 hand-crafted scenarios
-│           ├── dependency/    6 scenarios
-│           ├── iac/           6 scenarios
-│           └── migration/     4 scenarios
+│       └── scenarios/         76 hand-crafted scenarios
+│           ├── dependency/    24 scenarios
+│           ├── iac/           24 scenarios
+│           └── migration/     28 scenarios
 │
 ├── server/
 │   └── app.py                 OpenEnv multi-mode entry point
