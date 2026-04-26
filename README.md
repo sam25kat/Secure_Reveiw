@@ -324,8 +324,8 @@ Reproducible training scripts are at [training_space/](training_space/) and the 
 
 ## Blog & writeup
 
-- **Mini-blog (HuggingFace)**: [Read on Hugging Face](https://huggingface.co/spaces/sam25kat/securereview/discussions/1#69edb47ef08cea42f0f4df3a) — submission writeup with problem, env, training pipeline, and results.
-- **Source**: [BLOG.md](BLOG.md) — same content, in the repo.
+- **Mini-blog**: [BLOG.md](https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md) — submission writeup with problem, env, training pipeline, and results. Lives as a separate MD file at the root of the HF Space, per hackathon submission guidance.
+- **Mirror discussion**: [HF community thread](https://huggingface.co/spaces/sam25kat/securereview/discussions/1#69edb47ef08cea42f0f4df3a) — same content posted to the Space's Community tab for visibility.
 - **Full results**: [training_results/RESULTS.md](training_results/RESULTS.md)
 - **Complete scenario index** (all 76): [training_results/SCENARIOS.md](training_results/SCENARIOS.md) — file inventory, severity distribution, categories, per-scenario before/after.
 - **Plots**: [training_results/plots/](training_results/plots/) — committed PNGs for all three tasks (before/after + training loss).

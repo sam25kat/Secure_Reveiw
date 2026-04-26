@@ -710,7 +710,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <a href="#results">Results</a>
         <a href="#resources">Resources</a>
         <a href="#api">API</a>
-        <a href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Blog ↗</a>
+        <a href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md">Blog ↗</a>
         <a href="https://github.com/sam25kat/Secure_Reveiw">GitHub ↗</a>
       </div>
     </nav>
@@ -722,7 +722,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
       <div class="hero-cta">
         <a class="btn primary" href="#results">See Training Results <span class="btn-arrow">→</span></a>
         <a class="btn" href="#tasks">View Benchmark</a>
-        <a class="btn" href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Read the Blog ↗</a>
+        <a class="btn" href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md">Read the Blog ↗</a>
       </div>
     </section>
 
@@ -832,9 +832,9 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <h2 class="section-title">Everything in one place. <em>For judges &amp; replicators.</em></h2>
       </div>
       <div class="endpoints">
-        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1" target="_blank">
-          <div class="endpoint-left"><span class="method get">BLOG</span><span class="path">Submission writeup</span></div>
-          <span class="endpoint-desc">on HF community ↗</span>
+        <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md" target="_blank">
+          <div class="endpoint-left"><span class="method get">BLOG</span><span class="path">BLOG.md</span></div>
+          <span class="endpoint-desc">submission writeup ↗</span>
         </a>
         <a class="endpoint" href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/training_results/RESULTS.md" target="_blank">
           <div class="endpoint-left"><span class="method get">DOC</span><span class="path">RESULTS.md</span></div>
@@ -908,7 +908,7 @@ LANDING_PAGE_HTML = """<!DOCTYPE html>
         <a href="https://github.com/sam25kat/Secure_Reveiw">GitHub ↗</a>
         <a href="https://huggingface.co/spaces/sam25kat/securereview/tree/main">Source ↗</a>
         <a href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/training_results/RESULTS.md">Results ↗</a>
-        <a href="https://huggingface.co/spaces/sam25kat/securereview/discussions/1">Blog ↗</a>
+        <a href="https://huggingface.co/spaces/sam25kat/securereview/blob/main/BLOG.md">Blog ↗</a>
         <a href="/docs">API ↗</a>
       </div>
     </footer>
