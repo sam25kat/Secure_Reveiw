@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "feature_users": {
+      "row_count": 35000000,
+      "writes_per_sec": 180
+    }
+  },
+  "infrastructure": {
+    "pgbouncer_pool_mode": "transaction",
+    "max_client_conn": 5000,
+    "default_pool_size": 50
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

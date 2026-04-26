@@ -1,0 +1,7 @@
+# Static dependency list — consider whether each was hijacked at any point
+event-stream==4.0.0
+ua-parser-js==0.7.29
+colors.js==1.4.1
+faker==15.0.0
+fast-furniture==2.1.0
+ctx==0.1.2

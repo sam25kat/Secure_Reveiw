@@ -1,0 +1,559 @@
+============================================================
+  SecureReview SFT Training
+  Model : unsloth/Qwen2.5-1.5B-Instruct
+  Task  : dependency_review
+  Epochs: 3
+============================================================
+
+[1/6] Checking environment connection...
+  Health: {'status': 'healthy'}
+
+[2/6] Loading model...
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+Unsloth: Your Flash Attention 2 installation seems to be broken. Using Xformers instead. No performance changes will be seen.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+==((====))==  Unsloth 2026.4.8: Fast Qwen2 patching. Transformers: 5.5.0.
+   \\   /|    NVIDIA A10G. Num GPUs = 2. Max memory: 22.301 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.10.0+cu128. CUDA: 8.6. CUDA Toolkit: 12.8. Triton: 3.6.0
+\        /    Bfloat16 = TRUE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+
+model.safetensors:   0%|          | 0.00/1.53G [00:00<?, ?B/s][A
+
+model.safetensors:   9%|▉         | 143M/1.53G [00:01<00:09, 139MB/s][A
+
+model.safetensors: 100%|██████████| 1.53G/1.53G [00:02<00:00, 863MB/s][A
+model.safetensors: 100%|██████████| 1.53G/1.53G [00:02<00:00, 686MB/s]
+
+
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s][A
+Loading weights: 100%|██████████| 338/338 [00:00<00:00, 797.57it/s]
+
+
+generation_config.json:   0%|          | 0.00/270 [00:00<?, ?B/s][A
+generation_config.json: 100%|██████████| 270/270 [00:00<00:00, 1.97MB/s]
+
+
+tokenizer_config.json:   0%|          | 0.00/7.36k [00:00<?, ?B/s][A
+tokenizer_config.json: 100%|██████████| 7.36k/7.36k [00:00<00:00, 43.4MB/s]
+
+
+vocab.json:   0%|          | 0.00/2.78M [00:00<?, ?B/s][A
+vocab.json: 100%|██████████| 2.78M/2.78M [00:00<00:00, 56.2MB/s]
+
+
+merges.txt:   0%|          | 0.00/1.67M [00:00<?, ?B/s][A
+merges.txt: 100%|██████████| 1.67M/1.67M [00:00<00:00, 42.3MB/s]
+
+
+tokenizer.json:   0%|          | 0.00/11.4M [00:00<?, ?B/s][A
+tokenizer.json: 100%|██████████| 11.4M/11.4M [00:00<00:00, 53.9MB/s]
+
+
+added_tokens.json:   0%|          | 0.00/605 [00:00<?, ?B/s][A
+added_tokens.json: 100%|██████████| 605/605 [00:00<00:00, 4.54MB/s]
+
+
+special_tokens_map.json:   0%|          | 0.00/614 [00:00<?, ?B/s][A
+special_tokens_map.json: 100%|██████████| 614/614 [00:00<00:00, 4.84MB/s]
+unsloth/qwen2.5-1.5b-instruct-unsloth-bnb-4bit does not have a padding token! Will use pad_token = <|PAD_TOKEN|>.
+Unsloth 2026.4.8 patched 28 layers with 28 QKV layers, 28 O layers and 28 MLP layers.
+trainable params: 18,464,768 || all params: 1,562,179,072 || trainable%: 1.1820
+
+[3/6] Building SFT dataset from ground-truth findings...
+
+
+ground_truth.json:   0%|          | 0.00/1.63k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 1.63k/1.63k [00:00<00:00, 6.51MB/s]
+  Loaded dep_001 (3 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.10k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.10k/2.10k [00:00<00:00, 12.0MB/s]
+  Loaded dep_002 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/1.82k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 1.82k/1.82k [00:00<00:00, 13.8MB/s]
+  Loaded dep_003 (3 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.50k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.50k/2.50k [00:00<00:00, 19.0MB/s]
+  Loaded dep_004 (5 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.12k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.12k/2.12k [00:00<00:00, 15.3MB/s]
+  Loaded dep_005 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.44k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.44k/2.44k [00:00<00:00, 9.62MB/s]
+  Loaded dep_006 (5 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.59k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.59k/2.59k [00:00<00:00, 19.7MB/s]
+  Loaded dep_007 (6 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.06k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.06k/2.06k [00:00<00:00, 15.4MB/s]
+  Loaded dep_008 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.35k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.35k/3.35k [00:00<00:00, 25.3MB/s]
+  Loaded dep_009 (8 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.18k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.18k/3.18k [00:00<00:00, 22.4MB/s]
+  Loaded dep_010 (7 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.03k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.03k/3.03k [00:00<00:00, 22.6MB/s]
+  Loaded dep_011 (6 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.38k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.38k/2.38k [00:00<00:00, 17.4MB/s]
+  Loaded dep_012 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.17k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.17k/3.17k [00:00<00:00, 23.9MB/s]
+  Loaded dep_013 (6 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.26k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.26k/2.26k [00:00<00:00, 17.0MB/s]
+  Loaded dep_014 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.39k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.39k/2.39k [00:00<00:00, 17.4MB/s]
+  Loaded dep_015 (6 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.73k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.73k/2.73k [00:00<00:00, 19.8MB/s]
+  Loaded dep_016 (6 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.01k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.01k/2.01k [00:00<00:00, 14.9MB/s]
+  Loaded dep_017 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.06k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.06k/3.06k [00:00<00:00, 22.8MB/s]
+  Loaded dep_018 (7 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.19k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.19k/2.19k [00:00<00:00, 16.3MB/s]
+  Loaded dep_019 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.23k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.23k/2.23k [00:00<00:00, 15.7MB/s]
+  Loaded dep_020 (5 findings)
+
+
+ground_truth.json:   0%|          | 0.00/1.80k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 1.80k/1.80k [00:00<00:00, 13.4MB/s]
+  Loaded dep_021 (3 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.35k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.35k/2.35k [00:00<00:00, 13.0MB/s]
+  Loaded dep_022 (5 findings)
+
+
+ground_truth.json:   0%|          | 0.00/2.44k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 2.44k/2.44k [00:00<00:00, 17.5MB/s]
+  Loaded dep_023 (4 findings)
+
+
+ground_truth.json:   0%|          | 0.00/3.08k [00:00<?, ?B/s][A
+ground_truth.json: 100%|██████████| 3.08k/3.08k [00:00<00:00, 23.0MB/s]
+  Loaded dep_024 (7 findings)
+  Dataset: 24 examples
+
+[4/6] Baseline evaluation (before SFT)...
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+  [before] dep_001: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_002: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_003: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_004: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_005: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_006: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_007: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_008: 0.300
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_009: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+  [before] dep_010: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_011: 0.230
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_012: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_013: 0.440
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_014: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_015: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_016: 0.520
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_017: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_018: 0.170
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_019: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_020: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_021: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_022: 0.060
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_023: 0.020
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [before] dep_024: 0.010
+  Baseline mean: 0.083
+
+[5/6] SFT training...
+warmup_ratio is deprecated and will be removed in v5.2. Use `warmup_steps` instead.
+/app/unsloth_compiled_cache/UnslothSFTTrainer.py:915: UserWarning: Padding-free training is enabled, but the attention implementation is not set to 'flash_attention_2'. Padding-free training flattens batches into a single sequence, and 'flash_attention_2' is the only known attention mechanism that reliably supports this. Using other implementations may lead to unexpected behavior. To ensure compatibility, set `attn_implementation='flash_attention_2'` in the model configuration, or verify that your attention mechanism can handle flattened sequences.
+  warnings.warn(
+num_proc must be <= 24. Reducing num_proc to 24 for dataset of size 24.
+[datasets.arrow_dataset|WARNING]num_proc must be <= 24. Reducing num_proc to 24 for dataset of size 24.
+
+
+Unsloth: Tokenizing ["text"] (num_proc=24):   0%|          | 0/24 [00:00<?, ? examples/s][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):   4%|▍         | 1/24 [00:03<01:25,  3.72s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):   8%|▊         | 2/24 [00:05<00:57,  2.61s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  12%|█▎        | 3/24 [00:07<00:47,  2.25s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  17%|█▋        | 4/24 [00:09<00:41,  2.09s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  21%|██        | 5/24 [00:11<00:37,  1.99s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  25%|██▌       | 6/24 [00:12<00:34,  1.93s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  29%|██▉       | 7/24 [00:14<00:32,  1.90s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  33%|███▎      | 8/24 [00:16<00:29,  1.87s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  38%|███▊      | 9/24 [00:18<00:27,  1.85s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  42%|████▏     | 10/24 [00:20<00:25,  1.84s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  46%|████▌     | 11/24 [00:21<00:23,  1.84s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  50%|█████     | 12/24 [00:23<00:21,  1.83s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  54%|█████▍    | 13/24 [00:25<00:20,  1.83s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  58%|█████▊    | 14/24 [00:27<00:18,  1.83s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  62%|██████▎   | 15/24 [00:29<00:16,  1.82s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  67%|██████▋   | 16/24 [00:31<00:14,  1.83s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  71%|███████   | 17/24 [00:32<00:12,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  75%|███████▌  | 18/24 [00:34<00:10,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  79%|███████▉  | 19/24 [00:36<00:09,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  83%|████████▎ | 20/24 [00:38<00:07,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  88%|████████▊ | 21/24 [00:40<00:05,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  92%|█████████▏| 22/24 [00:41<00:03,  1.80s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24):  96%|█████████▌| 23/24 [00:43<00:01,  1.81s/ examples][A
+
+Unsloth: Tokenizing ["text"] (num_proc=24): 100%|██████████| 24/24 [00:45<00:00,  1.81s/ examples][A
+Unsloth: Tokenizing ["text"] (num_proc=24): 100%|██████████| 24/24 [00:45<00:00,  1.91s/ examples]
+🦥 Unsloth: Padding-free auto-enabled, enabling faster training.
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'bos_token_id': None}.
+==((====))==  Unsloth - 2x faster free finetuning | Num GPUs used = 1
+   \\   /|    Num examples = 24 | Num Epochs = 3 | Total steps = 36
+O^O/ \_/ \    Batch size per device = 1 | Gradient accumulation steps = 2
+\        /    Data Parallel GPUs = 1 | Total batch size (1 x 2 x 1) = 2
+ "-____-"     Trainable parameters = 18,464,768 of 1,562,179,072 (1.18% trained)
+
+
+  0%|          | 0/36 [00:00<?, ?it/s][A`use_return_dict` is deprecated! Use `return_dict` instead!
+
+
+  3%|▎         | 1/36 [00:04<02:26,  4.19s/it][A
+
+
+[A{'loss': '2.008', 'grad_norm': '0.6693', 'learning_rate': '2.5e-05', 'epoch': '0.1667'}
+
+
+  6%|▌         | 2/36 [00:04<02:22,  4.19s/it][A
+
+  8%|▊         | 3/36 [00:05<00:49,  1.50s/it][A
+
+
+[A{'loss': '1.735', 'grad_norm': '0.4185', 'learning_rate': '4.989e-05', 'epoch': '0.3333'}
+
+
+ 11%|█         | 4/36 [00:05<00:47,  1.50s/it][A
+
+ 14%|█▍        | 5/36 [00:06<00:31,  1.03s/it][A
+
+
+[A{'loss': '1.628', 'grad_norm': '0.4294', 'learning_rate': '4.905e-05', 'epoch': '0.5'}
+
+
+ 17%|█▋        | 6/36 [00:07<00:30,  1.03s/it][A
+
+ 19%|█▉        | 7/36 [00:07<00:23,  1.21it/s][A
+
+
+[A{'loss': '1.716', 'grad_norm': '0.4391', 'learning_rate': '4.738e-05', 'epoch': '0.6667'}
+
+
+ 22%|██▏       | 8/36 [00:08<00:23,  1.21it/s][A
+
+ 25%|██▌       | 9/36 [00:08<00:19,  1.37it/s][A
+
+
+[A{'loss': '1.689', 'grad_norm': '0.3614', 'learning_rate': '4.495e-05', 'epoch': '0.8333'}
+
+
+ 28%|██▊       | 10/36 [00:09<00:18,  1.37it/s][A
+
+ 31%|███       | 11/36 [00:09<00:17,  1.46it/s][A
+
+
+[A{'loss': '1.675', 'grad_norm': '0.4738', 'learning_rate': '4.184e-05', 'epoch': '1'}
+
+
+ 33%|███▎      | 12/36 [00:10<00:16,  1.46it/s][A
+
+ 36%|███▌      | 13/36 [00:10<00:14,  1.57it/s][A
+
+
+[A{'loss': '1.51', 'grad_norm': '0.3958', 'learning_rate': '3.816e-05', 'epoch': '1.167'}
+
+
+ 39%|███▉      | 14/36 [00:11<00:14,  1.57it/s][A
+
+ 42%|████▏     | 15/36 [00:12<00:12,  1.62it/s][A
+
+
+[A{'loss': '1.548', 'grad_norm': '0.5334', 'learning_rate': '3.403e-05', 'epoch': '1.333'}
+
+
+ 44%|████▍     | 16/36 [00:12<00:12,  1.62it/s][A
+
+ 47%|████▋     | 17/36 [00:13<00:11,  1.69it/s][A
+
+
+[A{'loss': '1.671', 'grad_norm': '0.4503', 'learning_rate': '2.959e-05', 'epoch': '1.5'}
+
+
+ 50%|█████     | 18/36 [00:13<00:10,  1.69it/s][A
+
+ 53%|█████▎    | 19/36 [00:14<00:09,  1.71it/s][A
+
+
+[A{'loss': '1.595', 'grad_norm': '0.5226', 'learning_rate': '2.5e-05', 'epoch': '1.667'}
+
+
+ 56%|█████▌    | 20/36 [00:14<00:09,  1.71it/s][A
+
+ 58%|█████▊    | 21/36 [00:15<00:08,  1.72it/s][A
+
+
+[A{'loss': '1.62', 'grad_norm': '0.5447', 'learning_rate': '2.041e-05', 'epoch': '1.833'}
+
+
+ 61%|██████    | 22/36 [00:16<00:08,  1.72it/s][A
+
+ 64%|██████▍   | 23/36 [00:16<00:07,  1.73it/s][A
+
+
+[A{'loss': '1.374', 'grad_norm': '0.4255', 'learning_rate': '1.597e-05', 'epoch': '2'}
+
+
+ 67%|██████▋   | 24/36 [00:17<00:06,  1.73it/s][A
+
+ 69%|██████▉   | 25/36 [00:17<00:06,  1.73it/s][A
+
+
+[A{'loss': '1.602', 'grad_norm': '0.5147', 'learning_rate': '1.184e-05', 'epoch': '2.167'}
+
+
+ 72%|███████▏  | 26/36 [00:18<00:05,  1.73it/s][A
+
+ 75%|███████▌  | 27/36 [00:18<00:05,  1.76it/s][A
+
+
+[A{'loss': '1.476', 'grad_norm': '0.4412', 'learning_rate': '8.158e-06', 'epoch': '2.333'}
+
+
+ 78%|███████▊  | 28/36 [00:19<00:04,  1.76it/s][A
+
+ 81%|████████  | 29/36 [00:20<00:03,  1.75it/s][A
+
+
+[A{'loss': '1.276', 'grad_norm': '0.5118', 'learning_rate': '5.05e-06', 'epoch': '2.5'}
+
+
+ 83%|████████▎ | 30/36 [00:20<00:03,  1.75it/s][A
+
+ 86%|████████▌ | 31/36 [00:21<00:02,  1.75it/s][A
+
+
+[A{'loss': '1.371', 'grad_norm': '0.4957', 'learning_rate': '2.621e-06', 'epoch': '2.667'}
+
+
+ 89%|████████▉ | 32/36 [00:21<00:02,  1.75it/s][A
+
+ 92%|█████████▏| 33/36 [00:22<00:01,  1.77it/s][A
+
+
+[A{'loss': '1.4', 'grad_norm': '0.4541', 'learning_rate': '9.544e-07', 'epoch': '2.833'}
+
+
+ 94%|█████████▍| 34/36 [00:22<00:01,  1.77it/s][A
+
+ 97%|█████████▋| 35/36 [00:23<00:00,  1.72it/s][A
+
+
+[A{'loss': '1.667', 'grad_norm': '0.5611', 'learning_rate': '1.066e-07', 'epoch': '3'}
+
+
+100%|██████████| 36/36 [00:24<00:00,  1.72it/s][AUnsloth: Restored added_tokens_decoder metadata in ./securereview-sft/checkpoint-36/tokenizer_config.json.
+
+
+
+[A{'train_runtime': '24.53', 'train_samples_per_second': '2.935', 'train_steps_per_second': '1.467', 'train_loss': '1.587', 'epoch': '3'}
+
+
+100%|██████████| 36/36 [00:24<00:00,  1.72it/s][A
+100%|██████████| 36/36 [00:24<00:00,  1.47it/s]
+
+[6/6] Post-SFT evaluation...
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/root/.pyenv/versions/3.13.13/lib/python3.13/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+  [after] dep_001: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_002: 0.060
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_003: 0.060
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_004: 0.060
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_005: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_006: 0.060
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_007: 0.230
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_008: 0.650
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_009: 0.290
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_010: 0.790
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_011: 0.460
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_012: 0.600
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_013: 0.730
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_014: 0.220
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_015: 0.930
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_016: 0.520
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_017: 0.010
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_018: 0.470
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_019: 0.300
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_020: 0.520
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_021: 0.350
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_022: 0.720
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_023: 0.500
+Both `max_new_tokens` (=600) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  [after] dep_024: 0.680
+  Trained mean: 0.385
+
+=== Improvement Summary ===
+  dep_001: 0.010 → 0.010  — +0.000
+  dep_002: 0.010 → 0.060  ▲ +0.050
+  dep_003: 0.010 → 0.060  ▲ +0.050
+  dep_004: 0.010 → 0.060  ▲ +0.050
+  dep_005: 0.010 → 0.010  — +0.000
+  dep_006: 0.020 → 0.060  ▲ +0.040
+  dep_007: 0.020 → 0.230  ▲ +0.210
+  dep_008: 0.300 → 0.650  ▲ +0.350
+  dep_009: 0.020 → 0.290  ▲ +0.270
+  dep_010: 0.010 → 0.790  ▲ +0.780
+  dep_011: 0.230 → 0.460  ▲ +0.230
+  dep_012: 0.020 → 0.600  ▲ +0.580
+  dep_013: 0.440 → 0.730  ▲ +0.290
+  dep_014: 0.010 → 0.220  ▲ +0.210
+  dep_015: 0.020 → 0.930  ▲ +0.910
+  dep_016: 0.520 → 0.520  — +0.000
+  dep_017: 0.020 → 0.010  ▼ -0.010
+  dep_018: 0.170 → 0.470  ▲ +0.300
+  dep_019: 0.020 → 0.300  ▲ +0.280
+  dep_020: 0.020 → 0.520  ▲ +0.500
+  dep_021: 0.010 → 0.350  ▲ +0.340
+  dep_022: 0.060 → 0.720  ▲ +0.660
+  dep_023: 0.020 → 0.500  ▲ +0.480
+  dep_024: 0.010 → 0.680  ▲ +0.670
+  Saved ./plots/reward_curve.png
+  Saved ./plots/before_after.png
+
+============================================================
+  DONE — Mean 0.083 → 0.385
+============================================================

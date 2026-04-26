@@ -1,0 +1,23 @@
+{
+  "tables": {
+    "documents": {
+      "row_count": 480000000,
+      "writes_per_sec": 320
+    },
+    "document_versions": {
+      "row_count": 1800000000
+    },
+    "tenants": {
+      "row_count": 5000,
+      "tier_distribution": {
+        "free": 3500,
+        "pro": 1250,
+        "enterprise": 250
+      }
+    }
+  },
+  "workload": {
+    "top_50_tenants_share_of_writes_pct": 80,
+    "tenant_scoped_query_pct": 90
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "scenario_id": "dep_022",
+  "description": "Frontend project with multiple JS-ecosystem CVEs",
+  "review_checklist": [
+    "Check each version for known CVEs",
+    "Identify deprecated packages with no current security maintenance",
+    "Audit dev/build dependencies that affect distributed code"
+  ],
+  "ground_truth": [
+    {
+      "file": "package.json",
+      "line": 4,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "Next.js 12.0.0 has CVE-2024-34351 (SSRF in Server Actions), CVE-2023-46298 (cache poisoning), CVE-2024-46982 (cache poisoning). Multiple critical issues fixed in 14.2.10+. Major version upgrade required.",
+      "match_key": "\"next\": \"12.0.0\"",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 7,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "lodash 4.17.15 has CVE-2019-10744 (prototype pollution in defaultsDeep) \u2014 patched in 4.17.12+, but additional issues followed. 4.17.21+ resolves all known prototype-pollution CVEs.",
+      "match_key": "lodash",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 8,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "axios 0.18.0 has CVE-2019-10742 (DoS via large response body) and CVE-2020-28168 (SSRF). Patched in 0.21.1 and 1.x.",
+      "match_key": "\"axios\": \"0.18.0\"",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 9,
+      "rule_id": "DEP-020",
+      "severity": "high",
+      "description": "moment.js: officially in maintenance mode since Sep 2020 \u2014 'consider alternatives' per maintainers. Use date-fns, dayjs, or Temporal API. Bundle size and lack of features motivated deprecation.",
+      "match_key": "\"moment\":",
+      "category": "deprecated_package"
+    },
+    {
+      "file": "package.json",
+      "line": 10,
+      "rule_id": "DEP-020",
+      "severity": "critical",
+      "description": "node-sass: officially deprecated in October 2020 in favor of dart-sass ('sass' on npm). Old node-sass has unmaintained C++ build dependencies that frequently break on new Node.js versions.",
+      "match_key": "node-sass",
+      "category": "deprecated_package"
+    }
+  ],
+  "initial_files": [
+    "package.json"
+  ],
+  "available_files": []
+}

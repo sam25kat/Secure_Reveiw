@@ -1,0 +1,65 @@
+{
+  "scenario_id": "migration_008",
+  "description": "Adding trigger-based async balance maintenance to a payment system. The application reads balance from a read replica during checkout. Review consistency, atomicity, and correctness implications.",
+  "review_checklist": [
+    "Identify read-after-write inconsistency risks across primary/replica",
+    "Verify atomicity of trigger relative to inserting transaction",
+    "Check whether dropped CHECK constraints can be re-validated",
+    "Evaluate trigger overhead on write hot path",
+    "Audit whether overdraft/race conditions are now possible"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_008.sql",
+      "line": 3,
+      "rule_id": "MIG-130",
+      "severity": "critical",
+      "description": "Trigger-based balance update creates a fundamental read-after-write hazard. Application reads balance from read replica (replication lag 50-2000ms); user just paid, balance not yet replicated \u2192 checkout shows old balance \u2192 user issues another payment \u2192 overdraft. Financial systems require synchronous balance reads from primary OR explicit version-check on the read path.",
+      "match_key": "read_after_write|payment_balance",
+      "category": "consistency_replication"
+    },
+    {
+      "file": "migration_008.sql",
+      "line": 5,
+      "rule_id": "MIG-131",
+      "severity": "critical",
+      "description": "Trigger UPDATE on accounts is not idempotent under retries. If the calling transaction retries due to serialization conflict, the trigger fires twice and double-credits. Use idempotency via payment_id uniqueness or move balance computation out of the trigger into an explicit two-phase pattern.",
+      "match_key": "trigger_not_idempotent|balance",
+      "category": "idempotency"
+    },
+    {
+      "file": "migration_008.sql",
+      "line": 18,
+      "rule_id": "MIG-132",
+      "severity": "critical",
+      "description": "Dropping the positive_balance CHECK constraint on a financial table eliminates the last line of defense against overdraft bugs. Constraint should be retained \u2014 re-add with NOT VALID and VALIDATE separately if you need a non-blocking change. Never drop a money-safety invariant.",
+      "match_key": "drop_check|positive_balance",
+      "category": "destructive_constraint_drop"
+    },
+    {
+      "file": "migration_008.sql",
+      "line": 8,
+      "rule_id": "MIG-133",
+      "severity": "high",
+      "description": "Trigger function takes row-level lock on accounts row (SELECT FOR UPDATE implicit in UPDATE) inside the inserter's transaction. For a hot account, all concurrent payments serialize on this row lock \u2014 same hot-row pattern as a global counter. Throughput collapses for high-velocity accounts.",
+      "match_key": "trigger_lock_serialization|accounts_row",
+      "category": "lock_serialization"
+    },
+    {
+      "file": "migration_008.sql",
+      "line": 1,
+      "rule_id": "MIG-134",
+      "severity": "high",
+      "description": "Architectural anti-pattern: derived data (account.balance_cents) is being computed eagerly via trigger when it should be derived lazily from ledger_entries. The 'event sourcing' pattern with materialized snapshots is industry-standard for financial ledgers. Recompute balance from ledger in a separate consistency check; do not embed in the write path.",
+      "match_key": "design|event_sourcing_ledger",
+      "category": "architecture_data_derivation"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_008.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

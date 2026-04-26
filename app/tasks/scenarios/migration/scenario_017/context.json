@@ -1,0 +1,14 @@
+{
+  "tables": {
+    "jobs": {
+      "active_rows": 50000,
+      "writes_per_sec": 6000,
+      "bloated_size_gb": 80,
+      "logical_size_mb": 200
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4",
+    "autovacuum_max_workers": 6
+  }
+}

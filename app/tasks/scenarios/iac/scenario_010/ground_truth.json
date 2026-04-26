@@ -1,0 +1,70 @@
+{
+  "scenario_id": "iac_010",
+  "description": "AWS IAM, S3, and CloudTrail config \u2014 review identity and audit posture",
+  "review_checklist": [
+    "Check IAM policies for wildcard principals or actions",
+    "Verify S3 bucket ACL and public-access settings",
+    "Audit logging configuration (CloudTrail)",
+    "Verify versioning for storage of compliance-relevant data"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 8,
+      "rule_id": "IAC-016",
+      "severity": "critical",
+      "description": "IAM policy uses Action=\"*\" with Resource=\"*\" \u2014 full account permissions, violates least-privilege",
+      "match_key": "aws_iam_policy.app_policy|wildcard_iam",
+      "category": "wildcard_iam"
+    },
+    {
+      "file": "main.tf",
+      "line": 22,
+      "rule_id": "IAC-001",
+      "severity": "critical",
+      "description": "S3 bucket ACL set to public-read-write \u2014 anyone on internet can read AND modify uploads",
+      "match_key": "aws_s3_bucket_acl.uploads|public_access",
+      "category": "public_access"
+    },
+    {
+      "file": "main.tf",
+      "line": 28,
+      "rule_id": "IAC-017",
+      "severity": "high",
+      "description": "S3 versioning disabled \u2014 no protection against accidental delete or ransomware",
+      "match_key": "aws_s3_bucket_versioning.uploads|versioning_disabled",
+      "category": "versioning_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 35,
+      "rule_id": "IAC-018",
+      "severity": "high",
+      "description": "CloudTrail log file validation disabled \u2014 tampering with audit logs goes undetected",
+      "match_key": "aws_cloudtrail.audit|log_validation_disabled",
+      "category": "log_validation_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 36,
+      "rule_id": "IAC-019",
+      "severity": "medium",
+      "description": "CloudTrail is single-region only \u2014 events from other regions not captured",
+      "match_key": "aws_cloudtrail.audit|single_region_trail",
+      "category": "single_region_trail"
+    },
+    {
+      "file": "main.tf",
+      "line": 33,
+      "rule_id": "IAC-020",
+      "severity": "high",
+      "description": "CloudTrail logs to publicly-writable S3 bucket \u2014 audit trail integrity compromised",
+      "match_key": "aws_cloudtrail.audit|public_log_bucket",
+      "category": "public_log_bucket"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

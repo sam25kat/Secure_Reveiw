@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_014",
+  "description": "Adding foreign key enforcement to tables that previously relied on application-layer integrity. Review locking, indexing, and operational implications.",
+  "review_checklist": [
+    "Identify FK validation lock acquisition on populated tables",
+    "Verify supporting indexes exist on the referencing column for cascading operations",
+    "Check ON DELETE behavior implications",
+    "Distinguish ADD CONSTRAINT FK NOT VALID vs immediate validation"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_014.sql",
+      "line": 4,
+      "rule_id": "MIG-190",
+      "severity": "critical",
+      "description": "ADD CONSTRAINT FOREIGN KEY without NOT VALID synchronously validates every row in invoices (180M rows) against tenants. Holds AccessExclusiveLock on invoices and ShareLock on tenants for the full validation duration (~6-10 minutes). Use the two-phase pattern: ADD ... NOT VALID followed by VALIDATE CONSTRAINT.",
+      "match_key": "synchronous_fk_validation|fk_invoices_tenant",
+      "category": "blocking_fk_validation"
+    },
+    {
+      "file": "migration_014.sql",
+      "line": 7,
+      "rule_id": "MIG-191",
+      "severity": "critical",
+      "description": "Same blocking issue with fk_invoices_customer. Compounded: this validation runs SEQUENTIALLY after the previous one, doubling outage window.",
+      "match_key": "synchronous_fk_validation|fk_invoices_customer",
+      "category": "blocking_fk_validation"
+    },
+    {
+      "file": "schema.sql",
+      "line": 18,
+      "rule_id": "MIG-192",
+      "severity": "high",
+      "description": "MISSING INDEX on invoices.tenant_id \u2014 the new FK requires this index for any future tenant DELETE or referential maintenance to be efficient. Without it, every tenant DELETE triggers a sequential scan of invoices (180M rows). Create CREATE INDEX CONCURRENTLY idx_invoices_tenant ON invoices(tenant_id) BEFORE adding the FK.",
+      "match_key": "missing_fk_supporting_index|invoices.tenant_id",
+      "category": "fk_no_supporting_index"
+    },
+    {
+      "file": "schema.sql",
+      "line": 32,
+      "rule_id": "MIG-193",
+      "severity": "high",
+      "description": "MISSING INDEX on invoice_lines.invoice_id. Combined with ON DELETE CASCADE, every invoice deletion triggers a seq scan of invoice_lines (1.2B rows). For batch invoice purges, this is hours of CPU per delete.",
+      "match_key": "missing_fk_supporting_index|invoice_lines.invoice_id",
+      "category": "fk_no_supporting_index"
+    },
+    {
+      "file": "migration_014.sql",
+      "line": 10,
+      "rule_id": "MIG-194",
+      "severity": "high",
+      "description": "ON DELETE CASCADE on invoice_lines silently propagates deletions. For a financial system, this is dangerous \u2014 a single invoice DELETE removes potentially thousands of line items with no audit trail. Prefer ON DELETE RESTRICT and require explicit application-layer cleanup, OR ensure compliance audit logs capture cascade events.",
+      "match_key": "cascade_on_financial_data|invoice_lines",
+      "category": "cascade_financial_risk"
+    },
+    {
+      "file": "schema.sql",
+      "line": 38,
+      "rule_id": "MIG-195",
+      "severity": "medium",
+      "description": "payment_methods.customer_id is nullable (no NOT NULL on schema). Adding FK allows orphaned NULL rows; combined with no index on customer_id, queries 'all payment methods for a customer' do seq scans. Add NOT NULL (after backfill) and create supporting index.",
+      "match_key": "nullable_fk_column|payment_methods.customer_id",
+      "category": "fk_nullable_no_index"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_014.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

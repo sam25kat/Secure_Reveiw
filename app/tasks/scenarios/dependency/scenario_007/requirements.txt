@@ -1,0 +1,8 @@
+# ML training pipeline dependencies
+matplotllib==3.7.1
+numpyy==1.24.3
+pandass==2.0.3
+scikit-lern==1.3.0
+seaborrn==0.12.2
+tensorflowgpu==2.13.0
+keras==2.13.1

@@ -1,0 +1,17 @@
+{
+  "tables": {
+    "subscriptions": {
+      "row_count": 18000000
+    },
+    "subscription_events": {
+      "row_count": 320000000
+    }
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "rolling_window_minutes": 25
+  },
+  "database": {
+    "engine": "PostgreSQL 14.10"
+  }
+}

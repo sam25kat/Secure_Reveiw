@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_018",
+  "description": "Migration script intended for safety: explicit timeouts, transaction-bounded changes. The application connects via pgbouncer in TRANSACTION pooling mode. Review the interaction between SET LOCAL semantics, pgbouncer, and the migration's correctness.",
+  "review_checklist": [
+    "Identify SET LOCAL vs SET behavior under transaction pooling",
+    "Verify CREATE INDEX inside a transaction semantics",
+    "Audit explicit timeout values vs index/UPDATE durations",
+    "Check ALTER TABLE + UPDATE pattern for HOT updates and locks"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_018.sql",
+      "line": 6,
+      "rule_id": "MIG-230",
+      "severity": "critical",
+      "description": "CREATE INDEX (without CONCURRENTLY) on line 10 cannot run inside a transaction block \u2014 the migration will work in psql against the primary directly, BUT through pgbouncer's transaction-pooling mode, the BEGIN-COMMIT block is honored per-statement and the implicit transaction may not span all statements as expected. Worse: CREATE INDEX CONCURRENTLY explicitly cannot run inside a transaction. Either run migration outside any wrapper transaction OR use a direct connection to the primary bypassing pgbouncer.",
+      "match_key": "create_index_in_transaction|pgbouncer",
+      "category": "pgbouncer_transaction_pooling"
+    },
+    {
+      "file": "migration_018.sql",
+      "line": 6,
+      "rule_id": "MIG-231",
+      "severity": "high",
+      "description": "CREATE INDEX without CONCURRENTLY on feature_users (35M rows) blocks writes for the build duration. Use CREATE INDEX CONCURRENTLY \u2014 but note this requires running OUTSIDE a transaction (separate concern from pgbouncer above).",
+      "match_key": "non_concurrent_index|fu_feature",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_018.sql",
+      "line": 14,
+      "rule_id": "MIG-232",
+      "severity": "high",
+      "description": "UPDATE without batching on a 35M-row table inside a single transaction. Even though the column was just added (all rows have NULL), UPDATEing all 35M rows in one transaction creates 35M dead tuples, ~12GB WAL, and risks hitting the 30s statement_timeout. This single statement will fail with timeout. Batch in chunks of 10K with SAVEPOINT/COMMIT cycles, OR use the ADD COLUMN ... DEFAULT 0 NOT NULL pattern (PG 11+ metadata-only).",
+      "match_key": "unbatched_update_under_timeout",
+      "category": "unbatched_update"
+    },
+    {
+      "file": "migration_018.sql",
+      "line": 12,
+      "rule_id": "MIG-233",
+      "severity": "medium",
+      "description": "ADD COLUMN granted_by BIGINT (nullable, no default) is metadata-only. Combined with the subsequent UPDATE setting all rows to 0, the correct one-step pattern is `ADD COLUMN granted_by BIGINT NOT NULL DEFAULT 0` \u2014 this is metadata-only (no rewrite, no UPDATE needed). Two-step pattern unnecessarily increases lock duration and bloat.",
+      "match_key": "two_step_default_inefficient",
+      "category": "alter_table_pattern"
+    },
+    {
+      "file": "migration_018.sql",
+      "line": 4,
+      "rule_id": "MIG-234",
+      "severity": "medium",
+      "description": "SET LOCAL statement_timeout under pgbouncer transaction-pooling: each new transaction gets a fresh session, so SET LOCAL applies only inside this transaction (correct semantics). However if the migration tool reuses the same connection across multiple migrations, the next migration WITHOUT explicit timeouts inherits the server defaults. Add SET LOCAL to every transaction OR set the timeouts at the role/database level (ALTER ROLE migrator SET statement_timeout = '30s').",
+      "match_key": "set_local_scope|pgbouncer",
+      "category": "session_setting_scope"
+    },
+    {
+      "file": "migration_018.sql",
+      "line": 14,
+      "rule_id": "MIG-235",
+      "severity": "medium",
+      "description": "granted_by = 0 as a sentinel for 'unknown' is a foreign-key-violating pattern if granted_by is intended to reference a users table. Use NULL semantically. If the column should be non-nullable for new rows, use a CHECK constraint or trigger that enforces non-NULL on INSERT only.",
+      "match_key": "sentinel_zero_for_unknown",
+      "category": "schema_null_semantics"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_018.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "scenario_id": "dep_014",
+  "description": "Mixed Python package management \u2014 three tools coexist with conflicting versions and ranges",
+  "review_checklist": [
+    "Identify which manifest is authoritative",
+    "Detect version conflicts across manifests",
+    "Audit binary vs source variants of equivalent packages"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 1,
+      "rule_id": "DEP-012",
+      "severity": "critical",
+      "description": "Mixed package managers: requirements.txt (pip), Pipfile (pipenv), and pyproject.toml (Poetry) all coexist with DIFFERENT version constraints for the same packages. Flask is 2.3.3 / 3.0.0 / ^3.1 across the three. Whichever tool runs last 'wins' \u2014 this is a guaranteed dev/prod divergence. Choose one tool, delete the others.",
+      "match_key": "mixed_managers",
+      "category": "manifest_drift"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-013",
+      "severity": "high",
+      "description": "psycopg2 (source build) requires PostgreSQL development headers and a C compiler \u2014 fails in production containers without those installed. The Pipfile correctly uses psycopg2-binary; align both files to the binary variant for production.",
+      "match_key": "psycopg2==",
+      "category": "wrong_package_variant"
+    },
+    {
+      "file": "Pipfile",
+      "line": 6,
+      "rule_id": "DEP-010",
+      "severity": "high",
+      "description": "Pipfile gunicorn = \"*\" allows any version. In production, this means installs are not reproducible; a new release can break the deploy. Pin to an exact version or version range.",
+      "match_key": "gunicorn = \"*\"",
+      "category": "unbounded_version"
+    },
+    {
+      "file": "pyproject.toml",
+      "line": 4,
+      "rule_id": "DEP-014",
+      "severity": "medium",
+      "description": "Caret range ^3.1 for Flask allows 3.1.0 through <4.0.0. Combined with the other manifests' tighter pins, the installed version depends on which tool the deployer ran. Drift inevitable.",
+      "match_key": "flask = \"^3.1\"",
+      "category": "caret_drift"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt",
+    "Pipfile",
+    "pyproject.toml"
+  ],
+  "available_files": []
+}

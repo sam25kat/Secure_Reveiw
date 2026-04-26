@@ -1,0 +1,64 @@
+{
+  "scenario_id": "migration_019",
+  "description": "Bundled multi-table ALTER inside a single transaction. The application has hot write paths that touch these same tables in opposite order. Review lock acquisition ordering and deadlock surface.",
+  "review_checklist": [
+    "Identify lock acquisition order vs application traffic order",
+    "Distinguish ALTER TABLE lock semantics across multiple tables in one transaction",
+    "Audit transaction scope sizing for multi-table changes",
+    "Check CONCURRENTLY usage on indexes inside transaction blocks"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_019.sql",
+      "line": 5,
+      "rule_id": "MIG-240",
+      "severity": "critical",
+      "description": "Migration acquires AccessExclusiveLock on shipments \u2192 order_items \u2192 orders \u2192 inventory in that order. Application checkout flow locks in REVERSE order: inventory (decrement) \u2192 orders (insert) \u2192 order_items (insert) \u2192 shipments (later). This guarantees deadlock during deployment: migration holds shipments, waits on order_items; checkout holds inventory, waits on shipments. Standard fix: acquire locks in CONSISTENT order across migration and application \u2014 by table name alphabetically is conventional. Reorder ALTERs as: inventory \u2192 order_items \u2192 orders \u2192 shipments.",
+      "match_key": "lock_order_inversion|migration_vs_app",
+      "category": "deadlock_lock_order"
+    },
+    {
+      "file": "migration_019.sql",
+      "line": 5,
+      "rule_id": "MIG-241",
+      "severity": "critical",
+      "description": "All four ALTER TABLEs inside one transaction means all four AccessExclusiveLocks are held until COMMIT. Even with correct lock order, this gives a 4-table simultaneous lock window. Best practice: split into 4 separate migration files / separate transactions, or at minimum ensure index creation outside the transaction (CONCURRENTLY).",
+      "match_key": "multi_table_locks_one_txn",
+      "category": "transaction_scope_too_large"
+    },
+    {
+      "file": "migration_019.sql",
+      "line": 10,
+      "rule_id": "MIG-242",
+      "severity": "critical",
+      "description": "CREATE INDEX inside a BEGIN/COMMIT block cannot use CONCURRENTLY. With orders at 200M rows and inventory at 8M rows, both indexes block writes for build duration. Move index creation OUTSIDE the transaction and use CREATE INDEX CONCURRENTLY.",
+      "match_key": "create_index_in_transaction",
+      "category": "create_index_in_txn"
+    },
+    {
+      "file": "migration_019.sql",
+      "line": 10,
+      "rule_id": "MIG-243",
+      "severity": "high",
+      "description": "Index on updated_by is wasted: column has no value yet (just added, all rows NULL). The index is 100% NULL entries, providing no query benefit until the column is populated. Defer index creation to a follow-up migration after backfill, or use a partial index `WHERE updated_by IS NOT NULL` to start small.",
+      "match_key": "index_on_all_null_column",
+      "category": "premature_index"
+    },
+    {
+      "file": "migration_019.sql",
+      "line": 5,
+      "rule_id": "MIG-244",
+      "severity": "medium",
+      "description": "Architectural improvement: bundling 'audit columns' across 4 tables suggests an opportunity for a unified audit table (audit_log: tenant_id, table_name, row_pk, updated_by, updated_at, change_type) consumed by triggers or application middleware. Per-table updated_by drifts when new tables are added; centralized audit is consistent.",
+      "match_key": "design|centralized_audit_table",
+      "category": "architecture_audit_pattern"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_019.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

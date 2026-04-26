@@ -1,0 +1,62 @@
+{
+  "scenario_id": "iac_021",
+  "description": "Kubernetes — payments LoadBalancer Service + Deployment. Identify exposure and traffic-policy issues.",
+  "review_checklist": [
+    "Verify Service exposure scope",
+    "Check loadBalancerSourceRanges",
+    "Identify missing NetworkPolicy",
+    "Verify in-cluster TLS posture",
+    "Check sensitive env flags"
+  ],
+  "ground_truth": [
+    {
+      "file": "service.yaml",
+      "line": 7,
+      "rule_id": "IAC-038",
+      "severity": "high",
+      "description": "Service type LoadBalancer publicly exposes the payments API to the internet",
+      "match_key": "Service.payments-api|public_loadbalancer",
+      "category": "public_service_exposure"
+    },
+    {
+      "file": "service.yaml",
+      "line": 9,
+      "rule_id": "IAC-002",
+      "severity": "critical",
+      "description": "loadBalancerSourceRanges 0.0.0.0/0 — payments service reachable from any IP on the public internet",
+      "match_key": "Service.payments-api|public_source_ranges",
+      "category": "permissive_security_group"
+    },
+    {
+      "file": "service.yaml",
+      "line": 11,
+      "rule_id": "IAC-039",
+      "severity": "high",
+      "description": "Service exposes port 80 (HTTP) — payments traffic carried in plaintext, not redirected to TLS",
+      "match_key": "Service.payments-api|plaintext_port",
+      "category": "encryption_in_transit"
+    },
+    {
+      "file": "service.yaml",
+      "line": 5,
+      "rule_id": "IAC-040",
+      "severity": "high",
+      "description": "Namespace prod has no NetworkPolicy guarding payments pods — any pod in cluster can reach them",
+      "match_key": "Service.payments-api|missing_network_policy",
+      "category": "missing_network_policy"
+    },
+    {
+      "file": "service.yaml",
+      "line": 35,
+      "rule_id": "IAC-041",
+      "severity": "high",
+      "description": "TLS_DISABLED=true in payments container — in-cluster traffic unencrypted between gateway and pod",
+      "match_key": "Deployment.payments-api|tls_disabled",
+      "category": "missing_tls_in_cluster"
+    }
+  ],
+  "initial_files": [
+    "service.yaml"
+  ],
+  "available_files": []
+}

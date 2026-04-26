@@ -1,0 +1,8 @@
+# Commercial SaaS product (closed-source) - license compatibility matters
+pyjwt==2.8.0
+flask==3.0.0
+mysql-connector-python==8.2.0
+psycopg2-binary==2.9.9
+gpl-only-pkg==1.0.0
+agpl-billing-utils==2.3.1
+readline==6.2.4.1

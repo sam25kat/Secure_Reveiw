@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_006",
+  "description": "Adding time-range analytics on a 2B-row events table \u2014 review index strategy and ALTER semantics on a non-partitioned hot table",
+  "review_checklist": [
+    "Evaluate BTREE vs BRIN for time-correlated columns on huge tables",
+    "Check ALTER TABLE ADD COLUMN with non-IMMUTABLE/non-constant DEFAULT semantics",
+    "Identify need for partitioning before adding indexes",
+    "Verify CONCURRENTLY usage on production-scale indexes"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_006.sql",
+      "line": 4,
+      "rule_id": "MIG-110",
+      "severity": "critical",
+      "description": "CREATE INDEX without CONCURRENTLY on a 2B-row table acquires SHARE lock on the entire table for the full build duration (estimated 6-12 hours). All writes block. Use CREATE INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_index|events.occurred_at",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_006.sql",
+      "line": 4,
+      "rule_id": "MIG-111",
+      "severity": "high",
+      "description": "BTREE index on occurred_at is a poor choice for an append-only time-series table at 2B rows. Use BRIN (Block Range INdex) \u2014 it's ~1000x smaller, supports range scans efficiently on naturally-ordered data, and has near-zero write overhead. For events table the index would shrink from ~60GB to ~50MB.",
+      "match_key": "wrong_index_type|brin_vs_btree",
+      "category": "index_type_choice"
+    },
+    {
+      "file": "migration_006.sql",
+      "line": 6,
+      "rule_id": "MIG-112",
+      "severity": "high",
+      "description": "Composite index (event_type, occurred_at) is created but no partitioning exists. With 80M new rows/day and unbounded growth, this index will become the dominant cost on every INSERT and bloat unboundedly. The schema requires PARTITION BY RANGE (occurred_at) before any time-based indexing strategy makes sense.",
+      "match_key": "missing_partitioning|events",
+      "category": "architectural_partitioning"
+    },
+    {
+      "file": "migration_006.sql",
+      "line": 8,
+      "rule_id": "MIG-113",
+      "severity": "critical",
+      "description": "ADD COLUMN with non-IMMUTABLE DEFAULT (EXTRACT depends on a value derived from another column) forces a full table rewrite \u2014 PG cannot use the fast metadata-only path introduced in PG 11. On 2B rows this rewrite is multi-day with AccessExclusiveLock. Use a separate UPDATE batch job or a generated column.",
+      "match_key": "table_rewrite|cohort_bucket",
+      "category": "non_immutable_default"
+    },
+    {
+      "file": "migration_006.sql",
+      "line": 8,
+      "rule_id": "MIG-114",
+      "severity": "medium",
+      "description": "Adding a denormalized cohort_bucket column duplicates information already in occurred_at. Use a GENERATED ALWAYS AS (...) STORED column or compute at query time \u2014 denormalization on a 2B-row table costs ~16GB and risks staleness if the formula changes.",
+      "match_key": "denormalization|cohort_bucket",
+      "category": "schema_design"
+    },
+    {
+      "file": "migration_006.sql",
+      "line": 10,
+      "rule_id": "MIG-115",
+      "severity": "low",
+      "description": "VACUUM ANALYZE inside the migration script blocks until full statistics gather completes. On 2B rows this can run hours. Let autovacuum handle this asynchronously, or use ANALYZE-only (skip the vacuum).",
+      "match_key": "vacuum_in_migration",
+      "category": "operational_blocking"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_006.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

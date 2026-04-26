@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_010",
+  "description": "Adding GDPR soft-delete to accounts table. Review the index strategy, uniqueness semantics under soft-delete, and whether the migration adequately supports the application's query patterns.",
+  "review_checklist": [
+    "Identify whether soft-deleted rows break uniqueness constraints",
+    "Evaluate partial index opportunities for queries on active rows",
+    "Check NULL semantics in soft-delete patterns",
+    "Verify tombstone column placement and indexability"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_010.sql",
+      "line": 9,
+      "rule_id": "MIG-150",
+      "severity": "critical",
+      "description": "Re-creating UNIQUE(workspace_id, email) without WHERE deleted_at IS NULL means a user cannot re-register with the same email after soft-deletion \u2014 uniqueness applies across all rows including tombstones. Use a partial unique index: `CREATE UNIQUE INDEX ... ON accounts(workspace_id, email) WHERE deleted_at IS NULL`.",
+      "match_key": "unique_constraint_blocks_resurrection|accounts",
+      "category": "soft_delete_uniqueness"
+    },
+    {
+      "file": "migration_010.sql",
+      "line": 11,
+      "rule_id": "MIG-151",
+      "severity": "high",
+      "description": "Index on deleted_at is wasted space \u2014 the column is NULL for 99%+ of rows (active users) and only set when soft-deleted. Replace with a partial index for the actual query: `CREATE INDEX ... WHERE deleted_at IS NULL` (covers active-user queries) or filter on deleted_at IS NOT NULL for admin reports.",
+      "match_key": "non_partial_index_on_sparse_column|deleted_at",
+      "category": "partial_index_missing"
+    },
+    {
+      "file": "migration_010.sql",
+      "line": 11,
+      "rule_id": "MIG-152",
+      "severity": "high",
+      "description": "Existing query patterns (`SELECT * FROM accounts WHERE workspace_id = ?`) now scan tombstones too. Without partial indexes WHERE deleted_at IS NULL on existing indexes (idx_accounts_workspace, idx_accounts_email), every read pays the deleted-row tax. As deletions accumulate, query performance degrades linearly.",
+      "match_key": "existing_indexes_scan_tombstones",
+      "category": "tombstone_scan_overhead"
+    },
+    {
+      "file": "migration_010.sql",
+      "line": 13,
+      "rule_id": "MIG-153",
+      "severity": "medium",
+      "description": "UPDATE without batching on accounts. Even with low write traffic, this acquires row-level locks for the full table. Should be batched, OR the column should have been created with a non-NULL default initially to avoid the UPDATE altogether.",
+      "match_key": "unbatched_update|is_active",
+      "category": "unbatched_update"
+    },
+    {
+      "file": "schema.sql",
+      "line": 8,
+      "rule_id": "MIG-154",
+      "severity": "medium",
+      "description": "Schema design redundancy: `is_active` boolean and the new `deleted_at` overlap. Either represents account state. Two sources of truth invite drift \u2014 application code may set one but not the other. Pick one: `deleted_at IS NULL` is the canonical soft-delete convention; remove `is_active` or document its distinct meaning (e.g. suspended-but-not-deleted).",
+      "match_key": "design|redundant_state_columns",
+      "category": "schema_design_redundancy"
+    },
+    {
+      "file": "migration_010.sql",
+      "line": 4,
+      "rule_id": "MIG-155",
+      "severity": "low",
+      "description": "deletion_reason as VARCHAR(60) is unconstrained free-text. For analytics and compliance reporting, use an enum or CHECK constraint enumerating allowed reasons (user_request, gdpr_erasure, admin_action, etc.).",
+      "match_key": "unconstrained_enum_text|deletion_reason",
+      "category": "schema_constraint_missing"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_010.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

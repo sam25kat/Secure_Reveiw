@@ -1,0 +1,24 @@
+{
+  "tables": {
+    "events": {
+      "row_count": 2100000000,
+      "daily_growth": 80000000,
+      "writes_per_sec": 1100,
+      "reads_per_sec": 220
+    }
+  },
+  "deployment": {
+    "strategy": "blue-green",
+    "downtime_budget_seconds": 60
+  },
+  "database": {
+    "engine": "PostgreSQL 14.10",
+    "shared_buffers_gb": 64,
+    "work_mem_mb": 64
+  },
+  "infrastructure": {
+    "primary": "us-east-1",
+    "read_replicas": 4,
+    "max_replication_lag_sec": 30
+  }
+}

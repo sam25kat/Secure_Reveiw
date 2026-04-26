@@ -1,0 +1,6 @@
+# Mixed private and public dependencies — confusion attack risk
+acme-internal-utils==2.5.0
+internal-billing-helpers==1.3.0
+acme-ml-tools==0.4.0
+private-data-pipeline==3.0.0
+flask==3.0.0

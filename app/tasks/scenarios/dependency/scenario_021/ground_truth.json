@@ -1,0 +1,43 @@
+{
+  "scenario_id": "dep_021",
+  "description": "Mixed pip + conda environment with conflicting versions of the same packages",
+  "review_checklist": [
+    "Check for conflicting versions across environments",
+    "Verify package availability in declared channels",
+    "Spot pip/conda mixing pitfalls (one overrides the other)"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 1,
+      "rule_id": "DEP-012",
+      "severity": "critical",
+      "description": "Mixed pip (requirements.txt) and conda (environment.yml) declare DIFFERENT versions of numpy (1.26 vs 1.24), scipy (1.11 vs 1.10), pytorch (2.1 vs 2.0). Whichever runs second 'wins' but creates fragile installs. Standardize on one tool.",
+      "match_key": "mixed_pip_conda",
+      "category": "manifest_drift"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-022",
+      "severity": "high",
+      "description": "PyPI package 'pytorch' is NOT the canonical PyTorch \u2014 that's installed via 'torch' on PyPI ('pytorch' the PyPI name has been a placeholder/different project). On conda the channel name is 'pytorch'. Mixing these conventions causes the wrong package to install.",
+      "match_key": "pytorch==2.1",
+      "category": "wrong_canonical_name"
+    },
+    {
+      "file": "environment.yml",
+      "line": 11,
+      "rule_id": "DEP-023",
+      "severity": "medium",
+      "description": "cudatoolkit=11.8 in conda environment file. CUDA versions must align with PyTorch and TensorFlow build constraints. Mismatch silently degrades to CPU mode at runtime \u2014 wastes GPU.",
+      "match_key": "cudatoolkit=11.8",
+      "category": "cuda_mismatch_risk"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt",
+    "environment.yml"
+  ],
+  "available_files": []
+}

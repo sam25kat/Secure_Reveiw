@@ -1,0 +1,64 @@
+{
+  "scenario_id": "migration_011",
+  "description": "Adding three CHECK constraints to a 90M-row subscriptions table on a high-traffic billing system. Review locking, validation, and ordering of operations.",
+  "review_checklist": [
+    "Distinguish ALTER TABLE ADD CONSTRAINT (validating) from ADD CONSTRAINT NOT VALID + VALIDATE",
+    "Identify lock acquisition implications of synchronous validation",
+    "Verify CONCURRENTLY usage on partial indexes for production tables",
+    "Check whether existing data violates the proposed constraints"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_011.sql",
+      "line": 4,
+      "rule_id": "MIG-160",
+      "severity": "critical",
+      "description": "ALTER TABLE ADD CONSTRAINT CHECK without NOT VALID acquires AccessExclusiveLock and synchronously scans every row in subscriptions (90M rows, ~8 minutes). All reads and writes block. Use the two-phase pattern: `ADD CONSTRAINT chk_period_order CHECK (...) NOT VALID` (instant, holds lock for ~10ms) followed by `VALIDATE CONSTRAINT chk_period_order` (acquires only ShareUpdateExclusiveLock \u2014 concurrent with reads/writes).",
+      "match_key": "synchronous_check_validation|chk_period_order",
+      "category": "blocking_check_constraint"
+    },
+    {
+      "file": "migration_011.sql",
+      "line": 7,
+      "rule_id": "MIG-161",
+      "severity": "critical",
+      "description": "Same blocking pattern as constraint 1 \u2014 ADD CONSTRAINT without NOT VALID on a 90M-row table is a multi-minute outage during peak billing traffic.",
+      "match_key": "synchronous_check_validation|chk_canceled_after_start",
+      "category": "blocking_check_constraint"
+    },
+    {
+      "file": "migration_011.sql",
+      "line": 10,
+      "rule_id": "MIG-162",
+      "severity": "critical",
+      "description": "Same blocking issue \u2014 and worse: chk_status_values may FAIL outright if any existing row has a status value outside the enumerated set (legacy 'paused', 'pending', etc.). Pre-validation step required: `SELECT DISTINCT status FROM subscriptions WHERE status NOT IN (...)`. Use NOT VALID then audit before VALIDATE.",
+      "match_key": "synchronous_check_validation|chk_status_values",
+      "category": "blocking_check_with_data_violations"
+    },
+    {
+      "file": "migration_011.sql",
+      "line": 13,
+      "rule_id": "MIG-163",
+      "severity": "high",
+      "description": "CREATE INDEX without CONCURRENTLY on a 90M-row table acquires SHARE lock blocking writes for the entire build duration. Although this is a partial index (only WHERE status = 'active'), index build still scans the whole table to identify matching rows. Use CREATE INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_partial_index|active_customer",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_011.sql",
+      "line": 10,
+      "rule_id": "MIG-164",
+      "severity": "medium",
+      "description": "CHECK constraint with status IN (...) is a poor model for an enumerated finite set. Consider a separate enum type (CREATE TYPE subscription_status AS ENUM ...) or a foreign key to a status reference table. Enums get planner statistics, the check IN list does not.",
+      "match_key": "design|status_enum_vs_check",
+      "category": "schema_enum_modeling"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_011.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

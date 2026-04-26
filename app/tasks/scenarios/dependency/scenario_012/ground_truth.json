@@ -1,0 +1,51 @@
+{
+  "scenario_id": "dep_012",
+  "description": "Closed-source commercial SaaS dependencies \u2014 review license compatibility risks",
+  "review_checklist": [
+    "Verify license of each dependency (MIT, BSD, Apache, MPL = generally OK)",
+    "Identify GPL/AGPL dependencies and their network-distribution implications",
+    "Check copyleft contamination scope"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-009",
+      "severity": "high",
+      "description": "mysql-connector-python uses GPL v2 with FOSS exception. The exception only applies to redistributing under another approved FOSS license \u2014 does NOT cover commercial closed-source. Use the MIT-licensed alternative PyMySQL or pay for Oracle's commercial license.",
+      "match_key": "mysql-connector-python",
+      "category": "gpl_license_risk"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-009",
+      "severity": "critical",
+      "description": "Package name signals GPL-only license. In a closed-source SaaS, GPL dependencies create copyleft contamination risk for any code that statically links or significantly integrates. Verify license and either replace or escalate to legal review.",
+      "match_key": "gpl-only-pkg",
+      "category": "gpl_contamination"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-009",
+      "severity": "critical",
+      "description": "AGPL packages trigger copyleft for SaaS products specifically \u2014 even network use counts as 'distribution' under AGPL. For a SaaS, this is the most aggressive copyleft trigger and likely violates the product's commercial license model. Replace immediately.",
+      "match_key": "agpl-billing-utils",
+      "category": "agpl_saas_violation"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 8,
+      "rule_id": "DEP-001",
+      "severity": "high",
+      "description": "Suspicious package: 'readline' as a top-level Python package on PyPI is unusual \u2014 readline is part of the Python standard library on most platforms. The PyPI 'readline' has been used as typosquat/malware in the past. Likely should not be a direct dependency.",
+      "match_key": "readline==6",
+      "category": "suspicious_package"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_017",
+  "description": "Tuning a high-throughput job queue table that suffers from MVCC bloat. Review the indexing, fillfactor, autovacuum, and HOT-update implications.",
+  "review_checklist": [
+    "Identify HOT update prerequisites (no indexed-column changes, fillfactor headroom)",
+    "Evaluate autovacuum tuning for write-heavy small tables",
+    "Verify partial index prerequisites for HOT-updates remain",
+    "Check bloat-reduction options: pg_repack, fillfactor, vacuum frequency"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_017.sql",
+      "line": 4,
+      "rule_id": "MIG-220",
+      "severity": "high",
+      "description": "Adding a partial index on (queue_name, created_at) WHERE state = 'pending' helps dequeue but DEFEATS HOT updates for any UPDATE that changes state, queue_name, or created_at. HOT (Heap-Only Tuple) updates require: (a) sufficient fillfactor headroom, (b) no indexed columns changed. The state column change is the most frequent update on this table \u2014 every UPDATE state=... now does a non-HOT update, creating an index entry, accelerating bloat.",
+      "match_key": "partial_index_breaks_hot|jobs",
+      "category": "hot_update_breaking"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-221",
+      "severity": "critical",
+      "description": "fillfactor not set on jobs table \u2014 defaults to 100% (every page packed full). For a table with 5-10 UPDATEs per row, no headroom means EVERY UPDATE creates a new tuple on a different page, breaking HOT and amplifying bloat. Set `ALTER TABLE jobs SET (fillfactor = 70)` to leave 30% per-page headroom for in-page UPDATE replacements. Should be bundled with this migration.",
+      "match_key": "missing_fillfactor|jobs",
+      "category": "fillfactor_missing"
+    },
+    {
+      "file": "migration_017.sql",
+      "line": 6,
+      "rule_id": "MIG-222",
+      "severity": "high",
+      "description": "ALTER COLUMN payload SET STORAGE EXTENDED on a populated table queues a full table rewrite to re-toast every row's payload. On a 80GB bloated table this can take hours under AccessExclusiveLock. Even worse: STORAGE EXTENDED is the DEFAULT for JSONB \u2014 this statement is a no-op disguised as a config change, but still triggers the rewrite.",
+      "match_key": "alter_storage_no_op_rewrite",
+      "category": "alter_storage_unnecessary"
+    },
+    {
+      "file": "migration_017.sql",
+      "line": 8,
+      "rule_id": "MIG-223",
+      "severity": "high",
+      "description": "autovacuum_vacuum_scale_factor = 0.2 means vacuum runs only after 20% of rows are dead \u2014 completely WRONG for this workload. With 50K active rows and 6000 jobs/sec, dead tuples accumulate at thousands/sec. Should be 0.01 or lower (vacuum after 1% bloat). Combined with autovacuum_vacuum_threshold for absolute trigger. Recommended: scale_factor = 0.05, threshold = 1000.",
+      "match_key": "autovacuum_misconfigured|jobs",
+      "category": "autovacuum_tuning"
+    },
+    {
+      "file": "migration_017.sql",
+      "line": 10,
+      "rule_id": "MIG-224",
+      "severity": "medium",
+      "description": "Adding error_count is fine (PG 11+ metadata-only with NOT NULL DEFAULT 0). But every error increment will UPDATE jobs, which combined with the partial index from line 4 is non-HOT \u2014 this column actively makes bloat worse. Consider storing error_count in a separate lighter-weight stats table or dropping the partial index.",
+      "match_key": "add_column_increases_update_freq",
+      "category": "schema_design_high_update_column"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-225",
+      "severity": "medium",
+      "description": "Architectural pattern critique: PostgreSQL is a poor fit for a 6000 ops/sec job queue. Each dequeue is a SELECT...FOR UPDATE SKIP LOCKED + UPDATE = 2 row visibilities per claim. Consider Redis Streams, NATS JetStream, or a dedicated queue (SQS, RabbitMQ). If staying on PG, use partition-by-state pattern (separate physical tables per state) or LISTEN/NOTIFY for new-job pings.",
+      "match_key": "design|postgres_as_high_throughput_queue",
+      "category": "architecture_wrong_tool"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_017.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_025",
+  "description": "Configuration migration to address 'too many connections' errors. Review the resource implications and whether this addresses the root cause.",
+  "review_checklist": [
+    "Quantify per-connection memory cost on PG",
+    "Identify connection pooler as the architectural answer",
+    "Audit work_mem implications under high connection counts",
+    "Check whether config change requires restart vs reload"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_025.sql",
+      "line": 4,
+      "rule_id": "MIG-300",
+      "severity": "critical",
+      "description": "max_connections = 12000 is architecturally wrong. Each PG backend has ~10MB baseline memory + transient query memory. 12000 connections = 120GB just for connection state. With work_mem = 256MB (line 8), a single sort/hash per connection can use 256MB \u2192 12000 \u00d7 256MB = 3TB memory budget. The instance will OOM under any concurrent load. Real fix: deploy a connection pooler (pgbouncer transaction mode) and set max_connections = 200-500. App servers connect to pgbouncer; pgbouncer multiplexes onto few backend connections.",
+      "match_key": "max_connections_too_high",
+      "category": "connection_architecture"
+    },
+    {
+      "file": "migration_025.sql",
+      "line": 4,
+      "rule_id": "MIG-301",
+      "severity": "critical",
+      "description": "max_connections requires a server RESTART to take effect. pg_reload_conf() does NOT apply this change. The migration appears to succeed but the limit is unchanged. Migration must coordinate with operations team for a planned restart, or use rolling restart on standbys + failover.",
+      "match_key": "max_connections_requires_restart",
+      "category": "config_requires_restart"
+    },
+    {
+      "file": "migration_025.sql",
+      "line": 8,
+      "rule_id": "MIG-302",
+      "severity": "high",
+      "description": "work_mem = 256MB combined with high connection count is dangerous. work_mem is per-operation, per-connection; a single query can use multiple work_mem allocations (one per sort/hash node). Calculate: max_connections \u00d7 concurrent_queries \u00d7 work_mem_nodes_per_query \u00d7 work_mem \u2264 available RAM. At 12000 conn \u00d7 256MB \u00d7 2 nodes = 6TB worst case. Lower work_mem to 32-64MB, raise per-statement using SET LOCAL when needed.",
+      "match_key": "work_mem_too_high_for_connection_count",
+      "category": "memory_sizing"
+    },
+    {
+      "file": "migration_025.sql",
+      "line": 6,
+      "rule_id": "MIG-303",
+      "severity": "medium",
+      "description": "shared_buffers = 32GB also requires restart. Same coordination issue as max_connections. Additionally, shared_buffers should be sized as ~25% of system RAM (not blindly increased) \u2014 for a 64GB instance, 32GB is at the upper safe limit; for less RAM it's harmful.",
+      "match_key": "shared_buffers_requires_restart",
+      "category": "config_requires_restart"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-304",
+      "severity": "high",
+      "description": "Architectural anti-pattern: 200 app servers \u00d7 50 threads each opening direct connections. Even with pgbouncer, this is fundamentally unsustainable. Use a per-app local connection pool (HikariCP for JVM, asyncpg pool for Python, etc) sized to ~5-10 connections per app. Combine with pgbouncer for multiplexing. Total backend connections \u2264 500 even at this scale.",
+      "match_key": "design|app_local_pool_plus_pgbouncer",
+      "category": "architecture_pooling_strategy"
+    },
+    {
+      "file": "migration_025.sql",
+      "line": 4,
+      "rule_id": "MIG-305",
+      "severity": "medium",
+      "description": "Increasing max_connections also affects max_locks_per_transaction \u00d7 max_connections shared memory allocation. Under high connection counts, lock tables can exhaust shared memory unexpectedly. Audit both settings together and size based on workload.",
+      "match_key": "max_locks_implications",
+      "category": "lock_table_sizing"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_025.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

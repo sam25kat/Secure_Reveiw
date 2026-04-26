@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "products": {
+      "row_count": 12000000,
+      "reads_per_sec": 48000,
+      "writes_per_sec": 25
+    }
+  },
+  "query_patterns": [
+    "SELECT id FROM products WHERE metadata @> '{\"brand\":\"Nike\"}' AND is_published = true",
+    "SELECT id FROM products WHERE metadata->>'category' = 'shoes' ORDER BY created_at DESC LIMIT 50"
+  ],
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

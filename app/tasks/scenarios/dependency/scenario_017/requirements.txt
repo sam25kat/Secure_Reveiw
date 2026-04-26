@@ -1,0 +1,6 @@
+# Direct deps look OK but transitive issues lurk
+fastapi==0.110.0
+sqlalchemy==2.0.25
+pandas==2.2.0
+playwright==1.41.0
+boto3==1.34.0

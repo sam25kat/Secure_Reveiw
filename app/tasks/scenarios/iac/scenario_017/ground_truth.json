@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_017",
+  "description": "Terraform — IAM roles and policies for data-platform. Review privilege boundaries.",
+  "review_checklist": [
+    "Identify wildcard IAM permissions",
+    "Verify cross-account trust scope",
+    "Check for static IAM access keys",
+    "Identify privilege escalation paths via PassRole",
+    "Check for credential leakage in outputs"
+  ],
+  "ground_truth": [
+    {
+      "file": "iam.tf",
+      "line": 11,
+      "rule_id": "IAC-024",
+      "severity": "high",
+      "description": "assume_role_policy trusts external account 999888777666 root principal — overly broad cross-account trust",
+      "match_key": "aws_iam_role.data_platform|cross_account_trust",
+      "category": "cross_account_access"
+    },
+    {
+      "file": "iam.tf",
+      "line": 27,
+      "rule_id": "IAC-006",
+      "severity": "critical",
+      "description": "Inline role policy grants Action=\"*\" Resource=\"*\" — full administrator privilege via wildcard IAM",
+      "match_key": "aws_iam_role_policy.data_platform_full|wildcard_iam",
+      "category": "iam_wildcard"
+    },
+    {
+      "file": "iam.tf",
+      "line": 36,
+      "rule_id": "IAC-025",
+      "severity": "high",
+      "description": "Static aws_iam_access_key for CI user — long-lived credential preferable to OIDC / role assumption",
+      "match_key": "aws_iam_access_key.ci_deployer|static_access_key",
+      "category": "hardcoded_credentials"
+    },
+    {
+      "file": "iam.tf",
+      "line": 47,
+      "rule_id": "IAC-026",
+      "severity": "high",
+      "description": "iam:PassRole with Resource=\"*\" allows ci-deployer to escalate by passing any role to Lambda/EC2",
+      "match_key": "aws_iam_user_policy.ci_deployer_policy|passrole_wildcard",
+      "category": "iam_wildcard"
+    },
+    {
+      "file": "iam.tf",
+      "line": 51,
+      "rule_id": "IAC-006",
+      "severity": "high",
+      "description": "Policy uses Resource=\"*\" with s3:* and lambda:* — over-permissive for a CI deployer",
+      "match_key": "aws_iam_user_policy.ci_deployer_policy|resource_wildcard",
+      "category": "iam_wildcard"
+    },
+    {
+      "file": "iam.tf",
+      "line": 58,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "Output exposes IAM secret access key in plaintext — credential will appear in Terraform state and CI logs",
+      "match_key": "output.ci_deployer_secret|secret_in_output",
+      "category": "hardcoded_secret"
+    }
+  ],
+  "initial_files": [
+    "iam.tf"
+  ],
+  "available_files": []
+}

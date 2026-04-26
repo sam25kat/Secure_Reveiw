@@ -1,0 +1,5 @@
+# pip-installable
+flask==2.3.3
+gunicorn==21.2.0
+psycopg2==2.9.9
+celery==5.3.4

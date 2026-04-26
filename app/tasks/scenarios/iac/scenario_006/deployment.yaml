@@ -33,7 +33,7 @@ spec:
             - name: DB_PASSWORD
               value: "s3cureP@ssw0rd!2024"
             - name: STRIPE_API_KEY
-              value: "sk_live_4eC39HqLyjWDarjtT1zdp7dc"
+              value: "sk_test_EXAMPLE_FAKE_KEY_FOR_TESTING"
             - name: JWT_SECRET
               value: "myapp-jwt-signing-key-prod-7f8a9b"
             - name: ENVIRONMENT

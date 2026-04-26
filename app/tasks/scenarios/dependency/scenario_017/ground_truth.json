@@ -1,0 +1,52 @@
+{
+  "scenario_id": "dep_017",
+  "description": "Direct dependencies are recent, but pinned transitive dependencies are vulnerable and incompatible",
+  "review_checklist": [
+    "Audit constraints.txt for pinned transitive versions",
+    "Identify version mismatch with direct dependency requirements",
+    "Check for transitive CVEs"
+  ],
+  "ground_truth": [
+    {
+      "file": "constraints.txt",
+      "line": 5,
+      "rule_id": "DEP-018",
+      "severity": "critical",
+      "description": "Pinned pydantic==1.10.7 conflicts with FastAPI 0.110.0 which requires pydantic>=2.0. The constraint will either fail to resolve or downgrade FastAPI silently. Direct vs transitive constraint mismatch.",
+      "match_key": "pydantic==1.10",
+      "category": "transitive_conflict"
+    },
+    {
+      "file": "constraints.txt",
+      "line": 2,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "starlette 0.36.0 has CVE-2024-47874 (multipart DoS) \u2014 patched in 0.40.0. Direct dependency FastAPI 0.110 pulls starlette transitively; this constraint pins it to a vulnerable version.",
+      "match_key": "starlette==0.36",
+      "category": "transitive_cve"
+    },
+    {
+      "file": "constraints.txt",
+      "line": 3,
+      "rule_id": "DEP-005",
+      "severity": "medium",
+      "description": "anyio 3.7.1 \u2014 anyio 4.x is required for asyncio.timeout compatibility with Python 3.11+ and has performance fixes. Pinning to 3.x in a constraints file forces older code paths.",
+      "match_key": "anyio==3.7",
+      "category": "transitive_outdated"
+    },
+    {
+      "file": "constraints.txt",
+      "line": 6,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "greenlet 2.0.0 has multiple memory-corruption issues fixed in 3.0.x. Required by sqlalchemy for its async support.",
+      "match_key": "greenlet==2.0",
+      "category": "transitive_cve"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt",
+    "constraints.txt"
+  ],
+  "available_files": []
+}

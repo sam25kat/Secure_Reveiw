@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_016",
+  "description": "Adding currency dimension and rebuilding the materialized view that powers the merchant analytics dashboard. Review concurrency, dependent objects, and the refresh strategy.",
+  "review_checklist": [
+    "Identify ALTER TABLE ADD COLUMN with DEFAULT semantics on PG 11+",
+    "Verify dependent objects survive view rebuild",
+    "Distinguish REFRESH MATERIALIZED VIEW vs CONCURRENTLY",
+    "Audit cache freshness model and refresh cadence"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_016.sql",
+      "line": 4,
+      "rule_id": "MIG-210",
+      "severity": "high",
+      "description": "ADD COLUMN currency CHAR(3) NOT NULL DEFAULT 'USD' on transactions (1.5B rows). PG 11+ supports this as metadata-only WHEN the default is non-volatile and IMMUTABLE. 'USD' literal qualifies, so this is fast \u2014 but ONLY if the default is set in the same statement. Current statement is correct, but a common bug is to ADD COLUMN, then ALTER...SET DEFAULT separately, which forces a rewrite. Document the requirement.",
+      "match_key": "add_column_default_metadata_only",
+      "category": "alter_table_metadata_only"
+    },
+    {
+      "file": "migration_016.sql",
+      "line": 6,
+      "rule_id": "MIG-211",
+      "severity": "critical",
+      "description": "DROP MATERIALIZED VIEW merchant_daily_summary will fail or cascade-break dependent objects. Per the schema comments, this view is consumed by 3 production services. The DROP itself takes AccessExclusiveLock on the view; any indexes on the view are also dropped. Use CREATE OR REPLACE pattern (PG 14+ for matviews) or do a swap: create new view with different name, atomically rename.",
+      "match_key": "drop_view_breaks_dependents|merchant_daily_summary",
+      "category": "view_drop_dependency_break"
+    },
+    {
+      "file": "migration_016.sql",
+      "line": 8,
+      "rule_id": "MIG-212",
+      "severity": "critical",
+      "description": "REFRESH MATERIALIZED VIEW (without CONCURRENTLY) acquires AccessExclusiveLock on the view, making it unreadable for the entire refresh duration (~15 min on 90 days \u00d7 1.5B-row source). All 3 dependent services see hard errors during this window. Use REFRESH MATERIALIZED VIEW CONCURRENTLY (requires UNIQUE INDEX on the view).",
+      "match_key": "refresh_blocking|merchant_daily_summary",
+      "category": "blocking_matview_refresh"
+    },
+    {
+      "file": "migration_016.sql",
+      "line": 10,
+      "rule_id": "MIG-213",
+      "severity": "high",
+      "description": "New matview definition lacks a UNIQUE INDEX, which means future REFRESH cannot use CONCURRENTLY mode. Always add `CREATE UNIQUE INDEX ON merchant_daily_summary(merchant_id, currency, day)` after view creation; this enables non-blocking refresh going forward.",
+      "match_key": "missing_unique_index_on_matview",
+      "category": "matview_unique_index"
+    },
+    {
+      "file": "schema.sql",
+      "line": 18,
+      "rule_id": "MIG-214",
+      "severity": "high",
+      "description": "Architectural smell: matview has 90-day window via `WHERE occurred_at > NOW() - INTERVAL '90 days'`. NOW() is captured at view DEFINITION time but refreshes use the same query \u2014 meaning each REFRESH re-evaluates the window. This is correct, but expensive: every refresh scans 90 days of transactions (~250M rows) even though only the last day changed. Consider incremental/delta materialization via pg_ivm or a partitioned daily summary table built from a continuous aggregate (TimescaleDB) or scheduled deltas.",
+      "match_key": "design|incremental_materialization",
+      "category": "matview_incremental_strategy"
+    },
+    {
+      "file": "migration_016.sql",
+      "line": 1,
+      "rule_id": "MIG-215",
+      "severity": "medium",
+      "description": "currency CHAR(3) is a poor data type choice. CHAR(3) pads to fixed width with spaces \u2014 'USD' stored, 'USD ' compared, leading to subtle bugs. Use VARCHAR(3) or even better, ENUM/lookup table referencing ISO 4217 currency codes.",
+      "match_key": "char_padding|currency",
+      "category": "schema_type_choice"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_016.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

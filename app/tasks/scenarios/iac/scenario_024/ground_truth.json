@@ -1,0 +1,116 @@
+{
+  "scenario_id": "iac_024",
+  "description": "docker-compose stack — multi-service prod deploy. Identify privilege, secret, and network exposure issues.",
+  "review_checklist": [
+    "Identify privileged / host-mode containers",
+    "Check hardcoded secrets in environment",
+    "Verify volume mount safety",
+    "Identify EOL base images",
+    "Check public port bindings"
+  ],
+  "ground_truth": [
+    {
+      "file": "docker-compose.yml",
+      "line": 5,
+      "rule_id": "IAC-011",
+      "severity": "high",
+      "description": "api service uses image:latest — non-deterministic deploys",
+      "match_key": "service.api|image_latest",
+      "category": "image_latest_tag"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 6,
+      "rule_id": "IAC-008",
+      "severity": "critical",
+      "description": "privileged: true on api service grants full host device access",
+      "match_key": "service.api|privileged_container",
+      "category": "privileged_container"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 7,
+      "rule_id": "IAC-033",
+      "severity": "critical",
+      "description": "network_mode: host shares host network namespace — can sniff/spoof other host traffic",
+      "match_key": "service.api|host_network",
+      "category": "host_network"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 9,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "DATABASE_PASSWORD hardcoded in compose file — credential ends up in repo + image inspect",
+      "match_key": "service.api|hardcoded_db_password",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 10,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "JWT_SECRET hardcoded — every deploy uses the same signing key, token forgery is trivial",
+      "match_key": "service.api|hardcoded_jwt",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 12,
+      "rule_id": "IAC-043",
+      "severity": "high",
+      "description": "Port binding 0.0.0.0:8080:8080 explicitly binds API to all interfaces — public exposure",
+      "match_key": "service.api|public_port_binding",
+      "category": "exposed_internal_port"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 14,
+      "rule_id": "IAC-010",
+      "severity": "critical",
+      "description": "Mounts docker.sock into container — container can launch siblings or escape via Docker daemon",
+      "match_key": "service.api|hostpath_docker_sock",
+      "category": "host_path_mount"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 15,
+      "rule_id": "IAC-010",
+      "severity": "critical",
+      "description": "Volume mount /:/host gives container full host filesystem access",
+      "match_key": "service.api|hostpath_root",
+      "category": "host_path_mount"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 16,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "user: root — api container runs as root explicitly",
+      "match_key": "service.api|run_as_root",
+      "category": "run_as_root"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 19,
+      "rule_id": "IAC-012",
+      "severity": "high",
+      "description": "postgres:9.6 image is end-of-life — no further security patches",
+      "match_key": "service.db|eol_postgres",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 21,
+      "rule_id": "IAC-005",
+      "severity": "high",
+      "description": "POSTGRES_PASSWORD=postgres — default password used in production",
+      "match_key": "service.db|default_password",
+      "category": "hardcoded_secret"
+    }
+  ],
+  "initial_files": [
+    "docker-compose.yml"
+  ],
+  "available_files": []
+}

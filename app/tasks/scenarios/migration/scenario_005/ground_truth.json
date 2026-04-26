@@ -1,0 +1,65 @@
+{
+  "scenario_id": "migration_005",
+  "description": "Centralizing order numbering \u2014 review a migration that replaces a per-region SEQUENCE with a single shared counter row across a 500 orders/sec workload",
+  "review_checklist": [
+    "Identify single-row contention bottlenecks under high write throughput",
+    "Verify lock semantics of UPDATE...RETURNING in PL/pgSQL functions",
+    "Check whether sequence drop has cascading effects on existing keys",
+    "Evaluate gap-tolerance and idempotency of the new ID strategy",
+    "Compare to alternatives: per-shard sequences, ULID, Snowflake IDs"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_005.sql",
+      "line": 8,
+      "rule_id": "MIG-101",
+      "severity": "critical",
+      "description": "Single-row UPDATE on global_counters serializes ALL inserts at 500 orders/sec \u2014 every transaction acquires a row-level lock on the same tuple, creating an O(n) queue. This is the textbook 'hot row' anti-pattern. Throughput will collapse from thousands/sec to ~100/sec under realistic concurrency.",
+      "match_key": "hot_row|global_counters",
+      "category": "hot_row_contention"
+    },
+    {
+      "file": "migration_005.sql",
+      "line": 14,
+      "rule_id": "MIG-102",
+      "severity": "high",
+      "description": "UPDATE...RETURNING inside a PL/pgSQL function holds the row lock until commit, not until the function returns. Combined with any downstream work in the calling transaction, lock duration grows beyond a single statement.",
+      "match_key": "lock_duration|next_order_number",
+      "category": "lock_duration"
+    },
+    {
+      "file": "migration_005.sql",
+      "line": 22,
+      "rule_id": "MIG-103",
+      "severity": "critical",
+      "description": "DROP SEQUENCE orders_id_seq CASCADE detaches the default for orders.id, breaking all subsequent INSERTs that don't explicitly provide an id. The CASCADE silently drops dependent objects without enumeration.",
+      "match_key": "drop_sequence|orders_id_seq",
+      "category": "destructive_cascade"
+    },
+    {
+      "file": "migration_005.sql",
+      "line": 19,
+      "rule_id": "MIG-104",
+      "severity": "medium",
+      "description": "DEFAULT expression calling next_order_number() executes per-row during INSERT \u2014 fine for normal traffic, but during bulk imports it serializes the entire batch on the global_counters row.",
+      "match_key": "default_function|order_number",
+      "category": "default_serialization"
+    },
+    {
+      "file": "migration_005.sql",
+      "line": 1,
+      "rule_id": "MIG-105",
+      "severity": "high",
+      "description": "Architectural concern: shared global counter is the wrong primitive for cross-region uniqueness. Use Snowflake-style IDs (timestamp + shard_id + sequence) or ULID \u2014 both are k-sortable and avoid coordination entirely.",
+      "match_key": "design|cross_region_id_strategy",
+      "category": "architecture_anti_pattern"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_005.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

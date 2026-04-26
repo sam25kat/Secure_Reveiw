@@ -1,0 +1,9 @@
+# Last touched 3 years ago, no automated update process
+django==3.2.0
+celery==5.0.0
+redis==3.5.0
+psycopg2-binary==2.8.0
+gunicorn==20.0.0
+gevent==20.6.0
+sentry-sdk==0.19.0
+prometheus-client==0.9.0

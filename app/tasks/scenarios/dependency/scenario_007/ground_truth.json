@@ -1,0 +1,69 @@
+{
+  "scenario_id": "dep_007",
+  "description": "ML training pipeline requirements with multiple typosquats targeting common ML libraries",
+  "review_checklist": [
+    "Check each package name against authoritative PyPI listings",
+    "Look for character substitution patterns (ll for l, double letters)",
+    "Verify combined package names that don't follow PyPI naming"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'matplotllib' (extra 'l') misspells the canonical 'matplotlib'. The genuine package is one of the most-downloaded scientific libraries; typosquats targeting it are a high-value attack vector.",
+      "match_key": "matplotllib",
+      "category": "typosquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'numpyy' (double y) misspells 'numpy'. NumPy is foundational to the ML ecosystem; typosquatting it gives an attacker code execution in nearly every ML pipeline.",
+      "match_key": "numpyy",
+      "category": "typosquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'pandass' misspells 'pandas'.",
+      "match_key": "pandass",
+      "category": "typosquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'scikit-lern' misspells 'scikit-learn' (note: PyPI canonical name uses dash; package import name uses underscore).",
+      "match_key": "scikit-lern",
+      "category": "typosquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'seaborrn' (double r) misspells 'seaborn'.",
+      "match_key": "seaborrn",
+      "category": "typosquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-002",
+      "severity": "high",
+      "description": "Suspicious package: 'tensorflowgpu' is not the canonical name. Real PyPI packages are 'tensorflow' (auto-detects GPU since 2.0) and historical 'tensorflow-gpu' (deprecated, with hyphen). 'tensorflowgpu' without hyphen is likely typosquat or hallucinated.",
+      "match_key": "tensorflowgpu",
+      "category": "hallucinated_or_typosquat"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

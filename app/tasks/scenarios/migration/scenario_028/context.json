@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "ad_impressions": {
+      "row_count": 4000000000,
+      "writes_per_sec": 18000,
+      "reads_per_sec": 50000
+    }
+  },
+  "sla": {
+    "p99_query_ms": 5,
+    "outage_budget_per_year_minutes": 8
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

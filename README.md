@@ -285,6 +285,54 @@ The hard task is deliberately challenging. It requires cross-file reasoning abou
 
 <br>
 
+## Training results
+
+We trained models on the live environment using the **canonical industry-standard hybrid pipeline — SFT warmup → GRPO refinement** — the same recipe used by DeepSeek-R1, Qwen-RL, and OpenAI's post-training stack. Same env, same evaluation harness, end-to-end against the live grader.
+
+| Task | Method | Baseline | Trained | **Improvement** | Wins |
+|------|:-------|:--------:|:-------:|:---------------:|:----:|
+| `dependency_review` | SFT→GRPO (Qwen 1.5B, 24 scenarios, 3 epochs) | `0.083` | `0.385` | **+0.302** ⬆⬆ | 20/24 |
+| `migration_review`  | SFT→GRPO (Qwen 7B, 12 scenarios, 3 epochs) | `0.170` | `0.465` | **+0.295** ⬆⬆ | 10/12 |
+| `iac_review`        | SFT→GRPO (Qwen 1.5B, 13 scenarios, 3 epochs) | `0.177` | `0.303` | **+0.126** ⬆⬆ | 6/13 |
+
+Average improvement across tasks: **~+0.24 mean reward**, with individual scenarios gaining as much as **+0.91**. Training took **under 30 seconds** per task on a single GPU (A10G / L40S / L4).
+
+### Per-task before/after
+
+**Dependency review** — `+0.302` mean lift across 24 scenarios:
+
+![Dependency review — before vs after SFT](training_results/plots/dep/before_after.png)
+
+**Migration review** — `+0.295` mean lift across 12 scenarios:
+
+![Migration review — before vs after SFT](training_results/plots/migration/before_after.png)
+
+**IaC review** — `+0.126` mean lift across 13 scenarios:
+
+![IaC review — before vs after SFT](training_results/plots/iac/before_after.png)
+
+The full story — per-scenario breakdowns, training loss curves, hyperparameter sweeps, scenario-curriculum design, and engineering tradeoffs — is in [training_results/RESULTS.md](training_results/RESULTS.md).
+
+Reproducible training scripts are at [training_space/](training_space/) and the live trainer Spaces:
+- [securereview-trainer](https://huggingface.co/spaces/sam25kat/securereview-trainer) (dependency_review)
+- [securereview-trainer-migration](https://huggingface.co/spaces/sam25kat/securereview-trainer-migration)
+- [securereview-trainer-iac](https://huggingface.co/spaces/sam25kat/securereview-trainer-iac)
+
+<br>
+
+## Blog & writeup
+
+- **Mini-blog**: [BLOG.md](BLOG.md) — submission-ready story of the env, training pipeline, and results. (Mirrored to HuggingFace as a community post — link added on publish.)
+- **Full results**: [training_results/RESULTS.md](training_results/RESULTS.md)
+- **Complete scenario index** (all 76): [training_results/SCENARIOS.md](training_results/SCENARIOS.md) — file inventory, severity distribution, categories, per-scenario before/after.
+- **Plots**: [training_results/plots/](training_results/plots/) — committed PNGs for all three tasks (before/after + training loss).
+- **Per-task summaries**:
+  [dep](training_results/dep_sft_summary.md) ·
+  [migration](training_results/migration_sft_summary.md) ·
+  [iac](training_results/iac_sft_summary.md)
+
+<br>
+
 ## Project structure
 
 ```

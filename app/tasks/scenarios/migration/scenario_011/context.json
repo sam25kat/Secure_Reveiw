@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "subscriptions": {
+      "row_count": 90000000,
+      "writes_per_sec": 320,
+      "reads_per_sec": 18000
+    }
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "downtime_budget_seconds": 0
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

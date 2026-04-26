@@ -1,0 +1,12 @@
+{
+  "infrastructure": {
+    "app_servers": 200,
+    "threads_per_server": 50,
+    "current_pool_strategy": "none"
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4",
+    "instance_ram_gb": 256,
+    "instance_cores": 32
+  }
+}

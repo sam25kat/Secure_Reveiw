@@ -1,0 +1,35 @@
+{
+  "task": "migration",
+  "scenarios": 12,
+  "baseline_mean": 0.17,
+  "trained_mean": 0.465,
+  "improvement": 0.29500000000000004,
+  "baseline_scores": {
+    "migration_002": 0.3,
+    "migration_006": 0.52,
+    "migration_007": 0.06,
+    "migration_009": 0.26,
+    "migration_012": 0.06,
+    "migration_017": 0.06,
+    "migration_018": 0.29,
+    "migration_022": 0.06,
+    "migration_023": 0.06,
+    "migration_024": 0.28,
+    "migration_025": 0.06,
+    "migration_028": 0.03
+  },
+  "trained_scores": {
+    "migration_002": 0.3,
+    "migration_006": 0.64,
+    "migration_007": 0.61,
+    "migration_009": 0.2,
+    "migration_012": 0.47,
+    "migration_017": 0.52,
+    "migration_018": 0.52,
+    "migration_022": 0.44,
+    "migration_023": 0.44,
+    "migration_024": 0.33,
+    "migration_025": 0.64,
+    "migration_028": 0.47
+  }
+}

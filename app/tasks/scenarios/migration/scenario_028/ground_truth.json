@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_028",
+  "description": "Replacing an index used by the hot-path ad-serving query. The replacement adds a covering column. Review the timing strategy and exposure during the change.",
+  "review_checklist": [
+    "Identify the time window when the table has no usable index for the hot query",
+    "Verify CONCURRENTLY usage on both DROP and CREATE",
+    "Audit the order of operations for online migration",
+    "Consider whether the new index actually helps the target query"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_028.sql",
+      "line": 4,
+      "rule_id": "MIG-330",
+      "severity": "critical",
+      "description": "DROP INDEX idx_imp_campaign_served BEFORE creating the replacement leaves the table without the supporting index for the hot ad-serving query. With 4B rows, queries that previously hit the index now seqscan \u2014 at 50K queries/sec, the database melts within seconds. Correct order: (1) CREATE INDEX CONCURRENTLY new_index, (2) verify it's valid + planner uses it, (3) DROP INDEX CONCURRENTLY old_index. Atomic from the application's perspective.",
+      "match_key": "drop_before_create_no_index_window",
+      "category": "online_index_swap_order"
+    },
+    {
+      "file": "migration_028.sql",
+      "line": 4,
+      "rule_id": "MIG-331",
+      "severity": "high",
+      "description": "DROP INDEX without CONCURRENTLY acquires AccessExclusiveLock on the table. On a 4B-row table at 50K qps, even the brief lock causes a query queue to build up; with serving-tier timeouts of 50ms, cascading failures hit upstream services within seconds. Use DROP INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_drop_index|hot_path",
+      "category": "non_concurrent_drop"
+    },
+    {
+      "file": "migration_028.sql",
+      "line": 6,
+      "rule_id": "MIG-332",
+      "severity": "critical",
+      "description": "CREATE INDEX without CONCURRENTLY on 4B rows. Builds a SHARE lock on the table for hours. All writes block. Combined with the prior DROP, the table is effectively dead during the migration. Use CREATE INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_create_index|hot_path",
+      "category": "non_concurrent_create"
+    },
+    {
+      "file": "migration_028.sql",
+      "line": 6,
+      "rule_id": "MIG-333",
+      "severity": "medium",
+      "description": "INCLUDE (cost_micros) on a covering index means each index entry stores cost_micros. With a 4B-row table this adds ~32GB to the index. Verify the target query actually benefits \u2014 if cost_micros is rarely needed in the hot path, leaving it out of the index keeps writes faster and saves cache.",
+      "match_key": "include_column_size_audit",
+      "category": "covering_index_cost"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-334",
+      "severity": "high",
+      "description": "Architectural critique: ad_impressions at 4B rows with no partitioning is a ticking time bomb. Daily growth + index updates will eventually outpace VACUUM. Partition by served_at (RANGE, monthly) \u2014 old partitions become read-only, indexes only built once, drop entire partitions for archival. Combined with BRIN indexes on time-series queries.",
+      "match_key": "design|missing_partitioning_ad_impressions",
+      "category": "architecture_partitioning_time_series"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-335",
+      "severity": "high",
+      "description": "Architectural critique: PG is not optimal storage for ad-serving at 50K qps. Consider tiered storage: live serving from Redis/Aerospike key-value with TTL, batch flush to PG for analytics, or move analytics to ClickHouse / Druid. PG remains a system of record but isn't on the serving hot path.",
+      "match_key": "design|wrong_db_for_serving",
+      "category": "architecture_tiered_storage"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_028.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

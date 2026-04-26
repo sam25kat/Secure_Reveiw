@@ -1,0 +1,88 @@
+{
+  "scenario_id": "iac_008",
+  "description": "Kubernetes Deployment \u2014 review pod security context and configuration",
+  "review_checklist": [
+    "Check for privileged containers and root users",
+    "Identify host-level mounts and namespaces",
+    "Find hardcoded secrets in manifests",
+    "Verify resource limits and image pinning"
+  ],
+  "ground_truth": [
+    {
+      "file": "deployment.yaml",
+      "line": 17,
+      "rule_id": "IAC-007",
+      "severity": "critical",
+      "description": "Pod uses hostNetwork=true \u2014 bypasses Kubernetes network policy and exposes node interfaces",
+      "match_key": "Deployment.webapp|host_network",
+      "category": "host_network"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 18,
+      "rule_id": "IAC-007",
+      "severity": "critical",
+      "description": "Pod uses hostPID=true \u2014 container can see and signal all host processes",
+      "match_key": "Deployment.webapp|host_pid",
+      "category": "host_pid"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 23,
+      "rule_id": "IAC-008",
+      "severity": "critical",
+      "description": "Container runs with privileged=true \u2014 equivalent to root on the node, can escape sandbox",
+      "match_key": "Deployment.webapp|privileged_container",
+      "category": "privileged_container"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 24,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "Container runs as runAsUser: 0 (root) \u2014 violates least-privilege",
+      "match_key": "Deployment.webapp|run_as_root",
+      "category": "run_as_root"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 28,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "DATABASE_PASSWORD hardcoded in env \u2014 should use Secret + secretKeyRef",
+      "match_key": "Deployment.webapp|hardcoded_secret",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 30,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "API_KEY hardcoded in env \u2014 exposes credentials in cluster manifest history",
+      "match_key": "Deployment.webapp|api_key_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 36,
+      "rule_id": "IAC-010",
+      "severity": "critical",
+      "description": "hostPath volume mounts host root filesystem '/' \u2014 container has full host filesystem access",
+      "match_key": "Deployment.webapp|host_path_mount",
+      "category": "host_path_mount"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 22,
+      "rule_id": "IAC-011",
+      "severity": "medium",
+      "description": "Image uses :latest tag \u2014 non-deterministic deploys, no rollback to specific version",
+      "match_key": "Deployment.webapp|image_latest_tag",
+      "category": "image_latest_tag"
+    }
+  ],
+  "initial_files": [
+    "deployment.yaml"
+  ],
+  "available_files": []
+}

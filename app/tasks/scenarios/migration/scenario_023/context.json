@@ -1,0 +1,15 @@
+{
+  "tables": {
+    "documents": {
+      "row_count": 12000000,
+      "avg_body_kb": 800,
+      "avg_yjs_state_kb": 400
+    }
+  },
+  "query_patterns": [
+    "SELECT id, title, last_edited_at FROM documents WHERE workspace_id=? ORDER BY last_edited_at DESC LIMIT 50"
+  ],
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

@@ -1,0 +1,8 @@
+# API service stack
+fastapi==0.103.0
+uvicorn[standard]==0.23.2
+python-dateutils==2.8.2
+sqlalchemy==2.0.20
+pydantic==1.10.13
+crypto==1.4.1
+beautifulsoup==4.12.2

@@ -1,0 +1,30 @@
+{
+  "tables": {
+    "orders": {
+      "row_count": 200000000,
+      "writes_per_sec": 1100
+    },
+    "order_items": {
+      "row_count": 740000000,
+      "writes_per_sec": 4400
+    },
+    "inventory": {
+      "row_count": 8000000,
+      "writes_per_sec": 5500
+    },
+    "shipments": {
+      "row_count": 180000000,
+      "writes_per_sec": 900
+    }
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "downtime_budget_seconds": 0
+  },
+  "application_lock_order": [
+    "inventory",
+    "orders",
+    "order_items",
+    "shipments"
+  ]
+}

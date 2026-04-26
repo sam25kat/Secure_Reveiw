@@ -1,0 +1,64 @@
+{
+  "scenario_id": "migration_013",
+  "description": "Extending the polymorphic comments table to support a new entity type. Review the polymorphic association pattern itself and evaluate whether the migration adequately addresses integrity.",
+  "review_checklist": [
+    "Identify referential integrity gaps in polymorphic associations",
+    "Evaluate alternatives: separate comment tables, exclusion constraint, conditional FK",
+    "Check whether type values are constrained",
+    "Audit data backfill UPDATE patterns"
+  ],
+  "ground_truth": [
+    {
+      "file": "schema.sql",
+      "line": 31,
+      "rule_id": "MIG-180",
+      "severity": "critical",
+      "description": "Polymorphic association on comments(target_type, target_id) bypasses PostgreSQL's foreign key enforcement entirely. Nothing prevents target_id pointing to a deleted/non-existent post/photo/video/storymap. Application bugs or race conditions can leave orphan rows undetected forever. Recommended alternatives: (a) separate comments_on_post / comments_on_photo / comments_on_video tables with proper FKs, (b) one comments table with multiple nullable FK columns + a CHECK constraint that exactly one is set, (c) for advanced cases, an EXCLUDE constraint enforcing mutual exclusivity.",
+      "match_key": "design|polymorphic_no_fk",
+      "category": "polymorphic_association"
+    },
+    {
+      "file": "schema.sql",
+      "line": 33,
+      "rule_id": "MIG-181",
+      "severity": "high",
+      "description": "target_type column is unconstrained VARCHAR. Application code can write 'storymap', 'StoryMap', 'sm', 'story_map' inconsistently \u2014 exactly what the migration's UPDATE on line 11 is trying to fix. Use a CHECK constraint enumerating valid types or a small reference table; without it, future drift is guaranteed.",
+      "match_key": "unconstrained_target_type",
+      "category": "schema_constraint_missing"
+    },
+    {
+      "file": "migration_013.sql",
+      "line": 11,
+      "rule_id": "MIG-182",
+      "severity": "high",
+      "description": "UPDATE comments SET target_type = 'storymap' WHERE target_type = 'sm' has no batching and no progress visibility. On a 200M-row comments table the UPDATE acquires row-level locks for every matched row in a single transaction, ballooning WAL volume and risking replication lag spikes. Batch in 5-10K row chunks with explicit commits.",
+      "match_key": "unbatched_update|target_type_rename",
+      "category": "unbatched_update"
+    },
+    {
+      "file": "migration_013.sql",
+      "line": 3,
+      "rule_id": "MIG-183",
+      "severity": "medium",
+      "description": "New storymaps table missing critical indexing for common access patterns: no index on creator_id (queries 'storymaps by user' will seq-scan), no index on published (queries for public storymaps will seq-scan), no created_at for time-sorted feeds.",
+      "match_key": "missing_indexes|storymaps",
+      "category": "missing_indexes"
+    },
+    {
+      "file": "schema.sql",
+      "line": 33,
+      "rule_id": "MIG-184",
+      "severity": "medium",
+      "description": "comments.target_id has no constraint on the type \u2014 a target_id of 12345 is just a bigint. If a post and a photo both have id=12345, application bugs can attribute comments to the wrong entity. With proper FK design (option b/c above), the type system enforces correctness.",
+      "match_key": "ambiguous_target_id_design",
+      "category": "polymorphic_id_ambiguity"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_013.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

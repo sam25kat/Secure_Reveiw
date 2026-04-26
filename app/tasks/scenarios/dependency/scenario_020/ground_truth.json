@@ -1,0 +1,60 @@
+{
+  "scenario_id": "dep_020",
+  "description": "Development tooling pinned to old versions \u2014 CI uses these, so vulns matter",
+  "review_checklist": [
+    "Map dev tools to known CVEs",
+    "Check for compatibility with modern Python versions",
+    "Identify dev tools that execute downloaded code"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements-dev.txt",
+      "line": 2,
+      "rule_id": "DEP-005",
+      "severity": "medium",
+      "description": "pytest 5.4.3 is from 2020. pytest 8.x is current. While dev-only, pytest plugins can have remote-code-execution implications during test discovery \u2014 not as critical as runtime deps but still worth updating.",
+      "match_key": "pytest==5.4",
+      "category": "outdated_devtool"
+    },
+    {
+      "file": "requirements-dev.txt",
+      "line": 4,
+      "rule_id": "DEP-015",
+      "severity": "high",
+      "description": "black==19.10b0 is a beta release. Stable black has been available since 21.0+. Beta in a dev requirements file is a code smell but rarely a security issue.",
+      "match_key": "black==19.10b",
+      "category": "beta_in_prod"
+    },
+    {
+      "file": "requirements-dev.txt",
+      "line": 5,
+      "rule_id": "DEP-005",
+      "severity": "low",
+      "description": "flake8 3.7.9 (2019) \u2014 current is 7.x. Mostly cosmetic but pyflakes/pycodestyle rules have evolved.",
+      "match_key": "flake8==3.7",
+      "category": "outdated_devtool"
+    },
+    {
+      "file": "requirements-dev.txt",
+      "line": 7,
+      "rule_id": "DEP-005",
+      "severity": "medium",
+      "description": "tox 3.14.6 has CVE-2018-19919 (path traversal). Patched long ago; upgrade to 4.x.",
+      "match_key": "tox==3.14",
+      "category": "known_cve"
+    },
+    {
+      "file": "requirements-dev.txt",
+      "line": 10,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "Sphinx 2.4.4 has multiple historical CVEs and supports old Python only. Sphinx 7.x is current. Documentation builders that fetch external resources can be a supply-chain entry point.",
+      "match_key": "sphinx==2.4",
+      "category": "outdated_devtool"
+    }
+  ],
+  "initial_files": [
+    "requirements-dev.txt"
+  ],
+  "available_files": []
+}

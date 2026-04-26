@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "inventory": {
+      "row_count": 4000000,
+      "hot_skus_share_traffic_pct": 80
+    }
+  },
+  "workload": {
+    "reservations_per_sec": 6000,
+    "concurrent_checkouts_per_sku_p99": 80
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4",
+    "default_isolation": "READ COMMITTED"
+  }
+}

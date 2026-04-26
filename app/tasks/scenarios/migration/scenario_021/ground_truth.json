@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_021",
+  "description": "Setting up logical replication to feed an analytics warehouse. Review the publication scope, replica identity choice, and operational implications.",
+  "review_checklist": [
+    "Verify FOR ALL TABLES vs explicit table list trade-offs",
+    "Identify REPLICA IDENTITY FULL implications on WAL volume",
+    "Audit PII columns being replicated (privacy/GDPR)",
+    "Check replication slot disk usage from large UPDATEs"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_021.sql",
+      "line": 4,
+      "rule_id": "MIG-260",
+      "severity": "critical",
+      "description": "PUBLICATION FOR ALL TABLES indiscriminately replicates EVERY table including pii_ssn, pii_dob columns from customers. Analytics warehouse should not receive raw PII. Use explicit table list `FOR TABLE customers, orders, products` with a column-list filter (PG 15+) `customers (id, email, full_name, created_at, updated_at)` excluding PII. GDPR/CCPA compliance demands this.",
+      "match_key": "pii_in_replication|customers",
+      "category": "replication_pii_leak"
+    },
+    {
+      "file": "migration_021.sql",
+      "line": 6,
+      "rule_id": "MIG-261",
+      "severity": "high",
+      "description": "REPLICA IDENTITY FULL on customers logs the OLD AND NEW image of every row on every UPDATE. WAL volume for the customers table multiplies by ~5x (size of full row). At 4M customers and ~150 updates/sec, this is ~30GB additional WAL/day. Use REPLICA IDENTITY USING INDEX with a small unique key (id alone is enough) to log only the changed columns + identity key.",
+      "match_key": "replica_identity_full_overhead",
+      "category": "replica_identity_choice"
+    },
+    {
+      "file": "migration_021.sql",
+      "line": 8,
+      "rule_id": "MIG-262",
+      "severity": "high",
+      "description": "CREATE INDEX without CONCURRENTLY on customers (4M rows). Concurrent with logical replication setup, the index build's locks can stall replication initialization, leaving the slot accumulating WAL on disk. Multi-hour stalls have been observed in production. Use CONCURRENTLY.",
+      "match_key": "non_concurrent_index|customers_updated",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_021.sql",
+      "line": 10,
+      "rule_id": "MIG-263",
+      "severity": "critical",
+      "description": "ADD COLUMN region_code DEFAULT 'US-EAST' on orders + immediate full-table UPDATE generates massive WAL during the moment logical replication slot is being initialized. The slot will fall arbitrarily far behind, holding WAL on the primary indefinitely (replication slot disk fill = primary outage). Either: (a) defer the slot creation until backfill is complete, or (b) skip the redundant UPDATE since `DEFAULT 'US-EAST' NOT NULL` would have been metadata-only.",
+      "match_key": "wal_explosion_during_slot_init",
+      "category": "slot_disk_fill_risk"
+    },
+    {
+      "file": "migration_021.sql",
+      "line": 12,
+      "rule_id": "MIG-264",
+      "severity": "medium",
+      "description": "UPDATE orders SET region_code WHERE region_code IS NULL is redundant \u2014 line 10's DEFAULT already set every existing row to 'US-EAST' during ADD COLUMN. The WHERE clause matches zero rows but takes a sequential scan to verify. Remove this statement.",
+      "match_key": "redundant_update_after_default",
+      "category": "redundant_statement"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-265",
+      "severity": "medium",
+      "description": "Architectural alternative: for analytics, consider Change Data Capture (CDC) via Debezium \u2192 Kafka rather than native PG logical replication. CDC handles schema evolution, downstream fan-out, replay capability, and decouples warehouse from primary. Native logical replication is fine for 1-to-1 PG-to-PG; for analytics it's a fragile coupling.",
+      "match_key": "design|cdc_vs_logical_replication",
+      "category": "architecture_data_pipeline"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_021.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

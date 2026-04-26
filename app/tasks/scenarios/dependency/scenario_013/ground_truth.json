@@ -1,0 +1,69 @@
+{
+  "scenario_id": "dep_013",
+  "description": "Node.js application package.json \u2014 review caret/wildcard versions, lockfile dependence, and postinstall hooks",
+  "review_checklist": [
+    "Identify version specifiers that allow drift (^, ~, *)",
+    "Check for known historical hijack/sabotage incidents per package",
+    "Verify postinstall scripts and supply-chain risk"
+  ],
+  "ground_truth": [
+    {
+      "file": "package.json",
+      "line": 11,
+      "rule_id": "DEP-007",
+      "severity": "critical",
+      "description": "node-ipc was sabotaged in 2022 \u2014 versions 10.1.1, 10.1.2, 11.0.0 were modified to corrupt files on disk based on geo-IP. ^9.2.1 allows minor upgrades up to <10.0 so escapes the directly-malicious range BUT trust is permanently broken; the maintainer demonstrated willingness to weaponize the package. Replace with an alternative.",
+      "match_key": "node-ipc",
+      "category": "protestware_known_actor"
+    },
+    {
+      "file": "package.json",
+      "line": 12,
+      "rule_id": "DEP-007",
+      "severity": "high",
+      "description": "is-promise was hijacked in April 2020 \u2014 the malicious version used dynamic require() to bypass detection. ^2.2.2 allows updates within 2.x; the hijacked version is in this range historically. Pin to a known-clean exact version, or remove (functionality is trivial).",
+      "match_key": "is-promise",
+      "category": "hijacked_within_range"
+    },
+    {
+      "file": "package.json",
+      "line": 13,
+      "rule_id": "DEP-010",
+      "severity": "critical",
+      "description": "@types/node: \"*\" is an unbounded wildcard \u2014 every npm install can pull a different version. Wildcard versions are explicitly forbidden by most enterprise dependency policies; pin to a version range like ^20.0.0.",
+      "match_key": "@types/node\":\"*\"",
+      "category": "unbounded_version"
+    },
+    {
+      "file": "package.json",
+      "line": 14,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "axios 0.21.1 has CVE-2021-3749 (ReDoS in trim function) and CVE-2020-28168 (SSRF). ^0.21.1 only allows patches within 0.21.x. Bump to 1.7.0+ for current security.",
+      "match_key": "axios",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 15,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "minimist 1.2.5 has CVE-2021-44906 (prototype pollution). ^1.2.5 allows up to <2.0 so 1.2.6+ resolves this; verify lockfile actually pulls a patched version.",
+      "match_key": "minimist",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 16,
+      "rule_id": "DEP-011",
+      "severity": "high",
+      "description": "Suspicious package name 'node-postinstall-script' suggests it executes scripts during install. Postinstall hooks are a primary supply-chain attack vector \u2014 npm install runs arbitrary code from any dependency by default. Audit the package or use --ignore-scripts.",
+      "match_key": "node-postinstall-script",
+      "category": "postinstall_risk"
+    }
+  ],
+  "initial_files": [
+    "package.json"
+  ],
+  "available_files": []
+}

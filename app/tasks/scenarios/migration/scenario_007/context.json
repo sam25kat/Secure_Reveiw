@@ -1,0 +1,17 @@
+{
+  "tables": {
+    "telemetry_records": {
+      "row_count": 4200000000,
+      "daily_growth": 120000000,
+      "writes_per_sec": 1400
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4",
+    "shared_buffers_gb": 128
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "downtime_budget_seconds": 0
+  }
+}

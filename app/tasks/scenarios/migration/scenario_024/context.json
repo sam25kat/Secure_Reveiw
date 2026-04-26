@@ -1,0 +1,24 @@
+{
+  "tables": {
+    "projects": {
+      "row_count": 8000000
+    },
+    "issues": {
+      "row_count": 240000000
+    },
+    "issue_comments": {
+      "row_count": 1100000000
+    }
+  },
+  "infrastructure": {
+    "pgbouncer_pool_mode": "transaction",
+    "app_db_role": "app_user (non-superuser)"
+  },
+  "compliance": {
+    "frameworks": [
+      "SOC2",
+      "ISO27001"
+    ],
+    "tenant_isolation_required": true
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "scenario_id": "dep_019",
+  "description": "Repository contains packages whose names match recent malicious-package campaigns (cryptominers, credential stealers)",
+  "review_checklist": [
+    "Spot generic 'helpers/utils/tools' suffixes \u2014 common malware-package naming",
+    "Cross-reference package names against malicious-package databases (Sonatype, Snyk advisories)",
+    "Check for crypto/wallet keywords"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-021",
+      "severity": "critical",
+      "description": "discord-utils-tools matches a documented Sonatype malicious-package report \u2014 discord token-stealer payload disguised as a utility library. Fake discord-* packages are a long-running campaign.",
+      "match_key": "discord-utils-tools",
+      "category": "malicious_known"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-021",
+      "severity": "critical",
+      "description": "async-tools-py: matches PyPI malicious-package patterns reported in 2023 \u2014 wallet-stealing payload via ctypes, targeting MetaMask and crypto extensions. Generic 'async-tools' name is a pattern.",
+      "match_key": "async-tools-py",
+      "category": "malicious_known"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-021",
+      "severity": "critical",
+      "description": "crypto-mining-helpers: package name is itself a red flag \u2014 legitimate libraries are not named after their malicious payload. This and similar 'crypto-mining-*' packages have been removed from PyPI as malicious.",
+      "match_key": "crypto-mining-helpers",
+      "category": "malicious_explicit"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-021",
+      "severity": "critical",
+      "description": "slack-py-tools: matches the 'slack-utility' malicious-package campaign \u2014 webhook URL exfiltration. Generic Slack-tooling names are abused for token harvesting.",
+      "match_key": "slack-py-tools",
+      "category": "malicious_known"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

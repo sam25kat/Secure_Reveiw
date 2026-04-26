@@ -1,0 +1,89 @@
+{
+  "scenario_id": "iac_018",
+  "description": "Terraform — CloudTrail audit logging + Lambda report processor. Identify audit-integrity and credential gaps.",
+  "review_checklist": [
+    "Verify audit log bucket is private",
+    "Check log integrity controls (validation, versioning)",
+    "Identify single-region trail blind spots",
+    "Check Lambda runtime freshness",
+    "Identify hardcoded secrets in environment variables"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 6,
+      "rule_id": "IAC-027",
+      "severity": "critical",
+      "description": "Audit log S3 bucket has acl = public-read — entire CloudTrail audit trail is publicly readable",
+      "match_key": "aws_s3_bucket.audit_logs|public_log_bucket",
+      "category": "public_log_bucket"
+    },
+    {
+      "file": "main.tf",
+      "line": 12,
+      "rule_id": "IAC-028",
+      "severity": "high",
+      "description": "S3 versioning disabled on audit bucket — log tampering or deletion is not recoverable",
+      "match_key": "aws_s3_bucket_versioning.audit_logs|versioning_disabled",
+      "category": "versioning_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 19,
+      "rule_id": "IAC-029",
+      "severity": "high",
+      "description": "is_multi_region_trail = false — actions in other AWS regions go unaudited",
+      "match_key": "aws_cloudtrail.main|single_region_trail",
+      "category": "single_region_trail"
+    },
+    {
+      "file": "main.tf",
+      "line": 21,
+      "rule_id": "IAC-030",
+      "severity": "high",
+      "description": "enable_log_file_validation = false — no SHA-256 digest, log tampering becomes undetectable",
+      "match_key": "aws_cloudtrail.main|log_validation_disabled",
+      "category": "log_validation_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 24,
+      "rule_id": "IAC-031",
+      "severity": "medium",
+      "description": "event_selector read_write_type = \"WriteOnly\" — read-side data exfiltration attempts are not logged",
+      "match_key": "aws_cloudtrail.main|read_events_missing",
+      "category": "missing_logging"
+    },
+    {
+      "file": "main.tf",
+      "line": 33,
+      "rule_id": "IAC-032",
+      "severity": "high",
+      "description": "Lambda runtime python3.7 has reached end-of-life — no security patches",
+      "match_key": "aws_lambda_function.report_processor|eol_runtime",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "main.tf",
+      "line": 38,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "Hardcoded DB_PASSWORD in Lambda environment variables — visible in console and Terraform state",
+      "match_key": "aws_lambda_function.report_processor|hardcoded_db_password",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "main.tf",
+      "line": 39,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "Hardcoded API_KEY (Stripe-style sk_live_...) in Lambda environment — credential leakage",
+      "match_key": "aws_lambda_function.report_processor|hardcoded_api_key",
+      "category": "hardcoded_secret"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

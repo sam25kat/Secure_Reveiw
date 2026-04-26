@@ -1,0 +1,9 @@
+# Suggested by LLM during code generation
+openai==1.3.0
+langchain-utils==0.5.2
+streamlit-helpers==0.3.1
+torch-helpers==1.9.0
+chromadb-client==0.4.5
+embedding-models==2.1.0
+vector-store==1.2.3
+ai-toolkit==0.8.0

@@ -1,0 +1,22 @@
+{
+  "tables": {
+    "activities": {
+      "row_count": 1830000000,
+      "writes_per_sec": 1200,
+      "current_max_id": 1832441981,
+      "int_max": 2147483647
+    },
+    "activity_reactions": {
+      "row_count": 820000000,
+      "writes_per_sec": 3400
+    }
+  },
+  "deployment": {
+    "strategy": "blue-green",
+    "downtime_budget_seconds": 0
+  },
+  "database": {
+    "engine": "PostgreSQL 14.10",
+    "logical_replication_subscribers": 3
+  }
+}

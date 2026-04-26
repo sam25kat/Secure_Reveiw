@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_012",
+  "description": "Optimizing the notification feed query on a 1.2B-row notifications table. Review the index design choice and whether existing indexes should be pruned.",
+  "review_checklist": [
+    "Verify column ordering matches query equality + range + sort pattern",
+    "Identify INCLUDE opportunities for covering index",
+    "Audit existing indexes for redundancy",
+    "Distinguish DROP INDEX safety on hot tables"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_012.sql",
+      "line": 6,
+      "rule_id": "MIG-170",
+      "severity": "critical",
+      "description": "Index column ordering is wrong for the target query. PostgreSQL B-tree composite indexes require equality predicates BEFORE range/sort columns. The query filters on user_id (equality) and is_read (equality), then sorts by created_at. Correct ordering: `(user_id, is_read, created_at DESC)`. The proposed `(created_at DESC, user_id, is_read)` cannot use the index for the user_id equality filter \u2014 planner must scan all created_at entries within the range.",
+      "match_key": "index_column_order|notif_feed",
+      "category": "index_ordering"
+    },
+    {
+      "file": "migration_012.sql",
+      "line": 6,
+      "rule_id": "MIG-171",
+      "severity": "high",
+      "description": "Missing INCLUDE clause for covering index. The query SELECTs id, title, created_at \u2014 these should be in the index payload via `INCLUDE (title, id)` to avoid heap fetches (index-only scan). For 1.2B rows and a 50-row query, this is the difference between 2ms (index-only) and 80-200ms (with heap fetches).",
+      "match_key": "missing_include|notif_feed",
+      "category": "covering_index"
+    },
+    {
+      "file": "migration_012.sql",
+      "line": 8,
+      "rule_id": "MIG-172",
+      "severity": "high",
+      "description": "DROP INDEX (without CONCURRENTLY) on a hot table acquires AccessExclusiveLock. On a 1.2B-row table during peak hours, even the metadata-only DROP can block briefly under heavy concurrent load. Use DROP INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_drop_index",
+      "category": "non_concurrent_drop"
+    },
+    {
+      "file": "schema.sql",
+      "line": 17,
+      "rule_id": "MIG-173",
+      "severity": "high",
+      "description": "Pre-existing index `idx_notif_user_created (created_at, user_id)` is redundant and useless \u2014 same column-order mistake as the new index. It cannot serve queries with user_id equality filter. Should be dropped, not retained alongside the new index.",
+      "match_key": "redundant_index|user_created",
+      "category": "redundant_existing_index"
+    },
+    {
+      "file": "schema.sql",
+      "line": 18,
+      "rule_id": "MIG-174",
+      "severity": "medium",
+      "description": "Pre-existing `idx_notif_user_read (user_id, is_read)` is partially redundant with the optimal new index (user_id, is_read, created_at DESC) INCLUDE (...). The two-column variant is dominated by the three-column variant for any query that filters user_id+is_read. Audit and drop as part of this migration.",
+      "match_key": "redundant_index|user_read",
+      "category": "redundant_existing_index"
+    },
+    {
+      "file": "schema.sql",
+      "line": 16,
+      "rule_id": "MIG-175",
+      "severity": "medium",
+      "description": "Index idx_notif_user (user_id) is a strict prefix of (user_id, is_read, created_at DESC) and is therefore redundant. Drop it. Each redundant index doubles INSERT cost and consumes ~25GB of buffer cache for this table.",
+      "match_key": "redundant_index|user_only",
+      "category": "redundant_existing_index"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_012.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tables": {
+    "accounts": {
+      "row_count": 18000000,
+      "reads_per_sec": 12000,
+      "soft_delete_rate_per_day": 1500
+    }
+  },
+  "compliance": {
+    "gdpr": true,
+    "retention_days_after_deletion": 30
+  },
+  "database": {
+    "engine": "PostgreSQL 14.10"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_016",
+  "description": "Terraform — EKS cluster + node group. Identify control-plane and endpoint misconfigurations.",
+  "review_checklist": [
+    "Verify control-plane endpoint exposure",
+    "Check Kubernetes version freshness",
+    "Verify control-plane logging is enabled",
+    "Check secrets encryption configuration",
+    "Identify SSH exposure on node groups"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 25,
+      "rule_id": "IAC-021",
+      "severity": "high",
+      "description": "EKS cluster runs Kubernetes 1.21 — reached end of EKS extended support, no further patches",
+      "match_key": "aws_eks_cluster.prod|eol_kubernetes",
+      "category": "eol_kubernetes_version"
+    },
+    {
+      "file": "main.tf",
+      "line": 28,
+      "rule_id": "IAC-019",
+      "severity": "critical",
+      "description": "endpoint_public_access = true with public_access_cidrs 0.0.0.0/0 exposes the Kubernetes API server to the public internet",
+      "match_key": "aws_eks_cluster.prod|public_endpoint",
+      "category": "public_kubernetes_api"
+    },
+    {
+      "file": "main.tf",
+      "line": 29,
+      "rule_id": "IAC-020",
+      "severity": "high",
+      "description": "endpoint_private_access = false disables private API endpoint — all control-plane traffic traverses the public internet",
+      "match_key": "aws_eks_cluster.prod|private_endpoint_disabled",
+      "category": "private_endpoint_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 33,
+      "rule_id": "IAC-022",
+      "severity": "high",
+      "description": "enabled_cluster_log_types = [] disables all control-plane logging — no audit trail for API actions",
+      "match_key": "aws_eks_cluster.prod|control_plane_logging",
+      "category": "control_plane_logging_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 33,
+      "rule_id": "IAC-023",
+      "severity": "high",
+      "description": "Cluster has no encryption_config block — Kubernetes secrets stored in etcd are not envelope-encrypted with KMS",
+      "match_key": "aws_eks_cluster.prod|secrets_encryption",
+      "category": "secrets_encryption_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 53,
+      "rule_id": "IAC-016",
+      "severity": "high",
+      "description": "remote_access enables SSH on node group with empty source_security_group_ids — SSH exposed to default broad CIDR",
+      "match_key": "aws_eks_node_group.prod_nodes|unrestricted_ssh",
+      "category": "unrestricted_ssh"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

@@ -1,0 +1,26 @@
+{
+  "tables": {
+    "customers": {
+      "row_count": 4000000,
+      "writes_per_sec": 150
+    },
+    "orders": {
+      "row_count": 200000000,
+      "writes_per_sec": 1100
+    }
+  },
+  "compliance": {
+    "frameworks": [
+      "GDPR",
+      "CCPA"
+    ],
+    "pii_columns": [
+      "customers.pii_ssn",
+      "customers.pii_dob"
+    ]
+  },
+  "infrastructure": {
+    "wal_disk_capacity_gb": 500,
+    "replication_slot_max_retention_gb": 100
+  }
+}

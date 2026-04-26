@@ -1,0 +1,69 @@
+{
+  "scenario_id": "dep_011",
+  "description": "A list of packages that were victims of high-profile supply-chain hijacks. Even at recent versions some carry residual risk.",
+  "review_checklist": [
+    "Recall historical hijacking incidents per package",
+    "Verify whether the pinned version pre-dates or post-dates the hijack",
+    "Check for protestware / abandoned-and-resurrected packages"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-007",
+      "severity": "critical",
+      "description": "event-stream@3.3.6 was hijacked in 2018 (flatmap-stream backdoor). 4.x.y was published post-hijack but the package never recovered trust \u2014 actively avoided in production. Use alternatives like rxjs or readable-stream.",
+      "match_key": "event-stream",
+      "category": "hijacked_history"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-007",
+      "severity": "critical",
+      "description": "ua-parser-js@0.7.29 was the version that was hijacked in October 2021 (cryptominer + credential stealer). Even though clean versions followed, this exact pin is the malicious version. Required: upgrade to 0.7.30+ or 1.0.32+.",
+      "match_key": "ua-parser-js==0.7.29",
+      "category": "hijacked_exact_version"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-007",
+      "severity": "critical",
+      "description": "colors.js: protestware incident in early 2022 \u2014 the maintainer self-sabotaged 1.4.1+ versions with infinite-loop garbage output. Use older 1.4.0 or fork like ansi-colors.",
+      "match_key": "colors.js==1.4.1",
+      "category": "protestware"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-007",
+      "severity": "high",
+      "description": "faker: similar protestware in 2022 (maintainer sabotaged the package). Forks (community-faker, faker-js/faker for npm) are alternatives. Versions 15.x and forward predate the protest but trust is partially restored.",
+      "match_key": "faker==15",
+      "category": "protestware_history"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-008",
+      "severity": "high",
+      "description": "Suspicious: 'fast-furniture' is unusual for a coding context. Verify package legitimacy and provenance \u2014 name doesn't match conventional library naming. Possible squat or unrelated package.",
+      "match_key": "fast-furniture",
+      "category": "suspicious_package"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-007",
+      "severity": "critical",
+      "description": "ctx: hijacked in May 2022 (versions 0.1.2 and later in that release window were malicious). All ctx versions are now considered untrusted unless specifically audited. Replace.",
+      "match_key": "ctx==0.1.2",
+      "category": "hijacked_exact_version"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

@@ -1,0 +1,74 @@
+{
+  "scenario_id": "migration_024",
+  "description": "Enabling Postgres RLS for tenant isolation. The application uses pgbouncer with transaction pooling and runs `SET LOCAL app.tenant_id = ...` at the start of each transaction. Review correctness, performance, and operational concerns.",
+  "review_checklist": [
+    "Identify schema gaps that prevent RLS from being effective",
+    "Audit policy expressions for performance",
+    "Verify policy applies to all relevant operations (SELECT, UPDATE, DELETE, INSERT)",
+    "Check denormalized tenant_id propagation",
+    "Audit superuser/role-bypass implications"
+  ],
+  "ground_truth": [
+    {
+      "file": "schema.sql",
+      "line": 30,
+      "rule_id": "MIG-290",
+      "severity": "critical",
+      "description": "issue_comments table has NO tenant_id column. The RLS policy on line 13 uses a SUBQUERY against issues to derive tenancy \u2014 this works for correctness but is catastrophically slow at scale. Every SELECT/UPDATE/DELETE on issue_comments triggers a subquery against issues. Add `tenant_id BIGINT NOT NULL` to issue_comments (denormalized but performant) and rewrite the policy as direct equality.",
+      "match_key": "missing_tenant_id_for_rls",
+      "category": "rls_denormalization_required"
+    },
+    {
+      "file": "migration_024.sql",
+      "line": 5,
+      "rule_id": "MIG-291",
+      "severity": "high",
+      "description": "Policies are USING-only, with no WITH CHECK clause. USING controls visibility for SELECT/UPDATE/DELETE but does NOT prevent INSERT/UPDATE from setting a row's tenant_id to a different tenant. An attacker (or compromised app code) could INSERT INTO projects (tenant_id, ...) VALUES (other_tenant, ...) bypassing isolation. Add `WITH CHECK (tenant_id = current_setting('app.tenant_id')::BIGINT)` to every policy.",
+      "match_key": "policy_missing_with_check",
+      "category": "rls_with_check_missing"
+    },
+    {
+      "file": "migration_024.sql",
+      "line": 5,
+      "rule_id": "MIG-292",
+      "severity": "high",
+      "description": "Policy uses current_setting('app.tenant_id') without the second argument `missing_ok`. If the app fails to SET LOCAL the tenant_id (bug or untrapped error), current_setting raises ERROR \u2014 but worse, in some PG versions, an unset GUC returns empty string, which `::BIGINT` cast turns into a runtime error. Use `current_setting('app.tenant_id', true)::BIGINT` (true = missing_ok) and combine with NOT NULL check: `tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::BIGINT`.",
+      "match_key": "current_setting_unsafe_cast",
+      "category": "rls_setting_safety"
+    },
+    {
+      "file": "migration_024.sql",
+      "line": 1,
+      "rule_id": "MIG-293",
+      "severity": "high",
+      "description": "ENABLE ROW LEVEL SECURITY is NOT enforced for table owners or roles with BYPASSRLS. The role used by the application connection pool MUST be a non-owner non-superuser role. Common misconfiguration: app uses the `postgres` superuser. Audit the role used by the connection pool and ensure it is a tightly-scoped role; consider FORCE ROW LEVEL SECURITY to also apply policies to owners.",
+      "match_key": "rls_bypass_owner_superuser",
+      "category": "rls_role_audit"
+    },
+    {
+      "file": "migration_024.sql",
+      "line": 5,
+      "rule_id": "MIG-294",
+      "severity": "medium",
+      "description": "Policy applied broadly via `FOR ALL` (default when role and command unspecified) means even pg_dump / migrations affected. Better: define explicit policies per command (FOR SELECT, FOR INSERT, FOR UPDATE, FOR DELETE) with potentially different USING and WITH CHECK expressions per operation.",
+      "match_key": "policy_command_scope_undefined",
+      "category": "rls_command_scope"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-295",
+      "severity": "medium",
+      "description": "Architectural alternative: for high-isolation needs, a 'cell architecture' (one DB cluster per tenant tier) provides stronger isolation guarantees than RLS. RLS is defense-in-depth but a single bug in policy or a missed SET LOCAL leaks all tenant data. Consider RLS for the shared multi-tenant cluster, and dedicated clusters for enterprise tenants.",
+      "match_key": "design|rls_vs_cell_architecture",
+      "category": "architecture_isolation_strategy"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_024.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

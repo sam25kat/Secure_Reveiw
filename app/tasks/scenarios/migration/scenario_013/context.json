@@ -1,0 +1,21 @@
+{
+  "tables": {
+    "comments": {
+      "row_count": 200000000,
+      "writes_per_sec": 800,
+      "reads_per_sec": 4500
+    },
+    "posts": {
+      "row_count": 50000000
+    },
+    "photos": {
+      "row_count": 90000000
+    },
+    "videos": {
+      "row_count": 12000000
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

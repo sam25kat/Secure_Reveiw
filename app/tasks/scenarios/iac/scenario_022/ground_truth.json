@@ -1,0 +1,89 @@
+{
+  "scenario_id": "iac_022",
+  "description": "Production Dockerfile for a Django app. Identify image, secret, and runtime risks.",
+  "review_checklist": [
+    "Verify base image freshness",
+    "Identify hardcoded secrets in ENV",
+    "Check unnecessary install of ssh / sudo",
+    "Verify checksum on remote downloads",
+    "Verify USER directive present"
+  ],
+  "ground_truth": [
+    {
+      "file": "Dockerfile",
+      "line": 1,
+      "rule_id": "IAC-012",
+      "severity": "high",
+      "description": "FROM python:3.7-buster — Python 3.7 is end-of-life, no further security patches",
+      "match_key": "FROM|eol_python",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 3,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "STRIPE_API_KEY hardcoded in image layer — credential leaks via image registry",
+      "match_key": "ENV|stripe_key_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 4,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "DJANGO_SECRET_KEY hardcoded in image — used to sign sessions and CSRF tokens, must rotate immediately",
+      "match_key": "ENV|django_secret_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 5,
+      "rule_id": "IAC-036",
+      "severity": "medium",
+      "description": "DEBUG=True baked into image — production deploys will leak stack traces and settings",
+      "match_key": "ENV|debug_true",
+      "category": "debug_mode_enabled"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 8,
+      "rule_id": "IAC-013",
+      "severity": "high",
+      "description": "Installs openssh-server in container — anti-pattern, expands attack surface",
+      "match_key": "RUN|ssh_in_container",
+      "category": "ssh_in_container"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 12,
+      "rule_id": "IAC-014",
+      "severity": "high",
+      "description": "ADD https://... downloads installer over HTTPS without checksum — supply-chain risk",
+      "match_key": "ADD|unverified_download",
+      "category": "unverified_download"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 21,
+      "rule_id": "IAC-015",
+      "severity": "high",
+      "description": "EXPOSE 22 advertises SSH on the container — should not be exposed in production",
+      "match_key": "EXPOSE|ssh_port_exposed",
+      "category": "ssh_port_exposed"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 24,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "No USER directive — container will run as root by default, violates least-privilege",
+      "match_key": "USER|missing_user_directive",
+      "category": "run_as_root"
+    }
+  ],
+  "initial_files": [
+    "Dockerfile"
+  ],
+  "available_files": []
+}

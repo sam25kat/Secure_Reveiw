@@ -1,0 +1,101 @@
+============================================================
+  SecureReview SFT Training — iac
+  Model : unsloth/Qwen2.5-1.5B-Instruct
+  Task  : iac_review
+  Epochs: 3
+  LR    : 5e-5
+  Hardware: NVIDIA L4
+============================================================
+
+[1/6] Checking environment connection...
+  Health: {'status': 'healthy'}
+
+[2/6] Loading model...
+  Unsloth 2026.4.8: Fast Qwen2 patching. Transformers: 5.5.0.
+  trainable params: 18,464,768 || all params: 1,562,179,072 || trainable%: 1.1820
+
+[3/6] Building SFT dataset from ground-truth findings...
+  Loaded iac_002 (5 findings)
+  Loaded iac_004 (5 findings)
+  Loaded iac_005 (6 findings)
+  Loaded iac_007 (6 findings)
+  Loaded iac_010 (6 findings)
+  Loaded iac_014 (6 findings)
+  Loaded iac_016 (6 findings)
+  Loaded iac_018 (8 findings)
+  Loaded iac_019 (8 findings)
+  Loaded iac_020 (6 findings)
+  Loaded iac_022 (8 findings)
+  Loaded iac_023 (6 findings)
+  Loaded iac_024 (11 findings)
+  Dataset: 13 examples
+
+[4/6] Baseline evaluation (before SFT)...
+  [before] iac_002: 0.230
+  [before] iac_004: 0.090
+  [before] iac_005: 0.060
+  [before] iac_007: 0.010
+  [before] iac_010: 0.010
+  [before] iac_014: 0.010
+  [before] iac_016: 0.180
+  [before] iac_018: 0.540
+  [before] iac_019: 0.190
+  [before] iac_020: 0.390
+  [before] iac_022: 0.140
+  [before] iac_023: 0.440
+  [before] iac_024: 0.010
+  Baseline mean: 0.177
+
+  Curriculum filter (baseline <= 0.5): 12/13 scenarios → ['iac_002', 'iac_004', 'iac_005', 'iac_007', 'iac_010', 'iac_014', 'iac_016', 'iac_019', 'iac_020', 'iac_022', 'iac_023', 'iac_024']
+  Filtered training dataset: 12 examples
+
+[5/6] SFT training...
+  Num examples = 12 | Num Epochs = 3 | Total steps = 18
+  Batch size per device = 1 | Gradient accumulation steps = 2
+
+  step  1: loss 1.265
+  step  2: loss 1.362
+  step  3: loss 1.325
+  step  4: loss 1.388
+  step  5: loss 1.129
+  step  6: loss 1.104
+  step  7: loss 1.321
+  step  8: loss 1.198
+  step  9: loss 1.001
+  train_runtime: 17.14s | train_loss: 1.232
+
+[6/6] Post-SFT evaluation...
+  [after] iac_002: 0.310
+  [after] iac_004: 0.060
+  [after] iac_005: 0.060
+  [after] iac_007: 0.400
+  [after] iac_010: 0.760
+  [after] iac_014: 0.010
+  [after] iac_016: 0.130
+  [after] iac_018: 0.200
+  [after] iac_019: 0.390
+  [after] iac_020: 0.230
+  [after] iac_022: 0.540
+  [after] iac_023: 0.440
+  [after] iac_024: 0.410
+  Trained mean: 0.303
+
+=== Improvement Summary ===
+  iac_002: 0.230 → 0.310  ▲ +0.080
+  iac_004: 0.090 → 0.060  ▼ -0.030
+  iac_005: 0.060 → 0.060  — +0.000
+  iac_007: 0.010 → 0.400  ▲ +0.390
+  iac_010: 0.010 → 0.760  ▲ +0.750
+  iac_014: 0.010 → 0.010  — +0.000
+  iac_016: 0.180 → 0.130  ▼ -0.050
+  iac_018: 0.540 → 0.200  ▼ -0.340
+  iac_019: 0.190 → 0.390  ▲ +0.200
+  iac_020: 0.390 → 0.230  ▼ -0.160
+  iac_022: 0.140 → 0.540  ▲ +0.400
+  iac_023: 0.440 → 0.440  — +0.000
+  iac_024: 0.010 → 0.410  ▲ +0.400
+
+============================================================
+  DONE — Mean 0.177 → 0.303 = +0.126
+  Wins/Total: 7/13   (3 flat, 3 losses)
+============================================================

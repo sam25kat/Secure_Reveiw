@@ -1,0 +1,17 @@
+{
+  "tables": {
+    "notifications": {
+      "row_count": 1200000000,
+      "writes_per_sec": 4500,
+      "reads_per_sec": 7800,
+      "size_gb": 480
+    }
+  },
+  "query_patterns": [
+    "SELECT id, title, created_at FROM notifications WHERE user_id = ? AND is_read = false ORDER BY created_at DESC LIMIT 50"
+  ],
+  "database": {
+    "engine": "PostgreSQL 15.4",
+    "shared_buffers_gb": 64
+  }
+}

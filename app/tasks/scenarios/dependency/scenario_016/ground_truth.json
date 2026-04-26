@@ -1,0 +1,69 @@
+{
+  "scenario_id": "dep_016",
+  "description": "Long-abandoned packages \u2014 no commits in years, no security maintenance",
+  "review_checklist": [
+    "Identify packages with no recent releases (5+ years)",
+    "Check whether maintainership is active or abandoned",
+    "Find modern replacements for abandoned tooling"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-016",
+      "severity": "high",
+      "description": "Flask-Bcrypt last released 2017 (0.7.1). Functionally simple but unmaintained \u2014 switch to bcrypt directly or use passlib for password hashing. Abandonment in security-critical code is a long-term liability.",
+      "match_key": "flask-bcrypt",
+      "category": "abandoned"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-017",
+      "severity": "critical",
+      "description": "python2-secrets is a Python 2 backport of the secrets module. Python 2 reached EOL January 2020. Any Python 2 dependency in a current codebase is a major maintenance flag.",
+      "match_key": "python2-secrets",
+      "category": "python2_eol"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-016",
+      "severity": "medium",
+      "description": "ipython 5.x is the last Python 2 compatible series \u2014 frozen since 2017. For Python 3, use ipython 8.x. Pinning 5.10.0 indicates the project may still target Python 2.",
+      "match_key": "ipython==5.10",
+      "category": "abandoned_branch"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-016",
+      "severity": "high",
+      "description": "MongoKit last released 2014 \u2014 10+ years abandoned. Replace with PyMongo + custom validation, or motor for async, or beanie/odmantic for typed models.",
+      "match_key": "mongokit",
+      "category": "abandoned_severe"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-016",
+      "severity": "high",
+      "description": "Flask-Genshi: Genshi templating itself is abandoned (last release 2014). The Flask integration follows. Migrate templates to Jinja2 (Flask's default).",
+      "match_key": "flask-genshi",
+      "category": "abandoned_dependency_chain"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-016",
+      "severity": "high",
+      "description": "suds (the original SOAP client): last release 2010. Replaced long ago by suds-jurko (also abandoned ~2017) and currently zeep is the maintained alternative.",
+      "match_key": "suds==0.4",
+      "category": "abandoned_severe"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

@@ -1,0 +1,64 @@
+{
+  "scenario_id": "migration_007",
+  "description": "Optimization migration on a 4B-row telemetry table that uses UUID v4 as PK \u2014 review index/cluster strategy in light of PK choice",
+  "review_checklist": [
+    "Evaluate UUID v4 vs ULID/UUID v7 for clustered/B-tree write patterns",
+    "Verify CLUSTER lock semantics on production-sized tables",
+    "Check fillfactor implications for write-heavy vs read-heavy tables",
+    "Identify root-cause optimization vs band-aid fixes"
+  ],
+  "ground_truth": [
+    {
+      "file": "schema.sql",
+      "line": 3,
+      "rule_id": "MIG-120",
+      "severity": "critical",
+      "description": "UUID v4 as PRIMARY KEY on a 4B-row write-heavy table is a fundamental architectural mistake. Random UUIDs cause every INSERT to write to a different B-tree leaf page, destroying buffer cache hit rate and forcing constant page splits. Cache-effective working set is O(table_size) instead of O(recent_data). Use ULID or UUID v7 (k-sortable) for an immediate ~5x write throughput improvement and 50%+ cache hit rate gain.",
+      "match_key": "design|uuid_v4_pk_telemetry",
+      "category": "architecture_pk_choice"
+    },
+    {
+      "file": "migration_007.sql",
+      "line": 4,
+      "rule_id": "MIG-121",
+      "severity": "high",
+      "description": "Composite index without CONCURRENTLY on 4B rows blocks all writes for the duration (estimated 8-15 hours). Use CREATE INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_index|composite",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_007.sql",
+      "line": 7,
+      "rule_id": "MIG-122",
+      "severity": "high",
+      "description": "fillfactor=100 on a write-heavy table prevents HOT (Heap-Only Tuple) updates. Every UPDATE will require a new index entry, doubling write amplification. For tables with frequent UPDATEs, fillfactor=80-90 leaves room for in-page tuple replacement. Combined with UUID v4 PK, this guarantees worst-case write performance.",
+      "match_key": "fillfactor_too_high|write_heavy",
+      "category": "fillfactor_misconfiguration"
+    },
+    {
+      "file": "migration_007.sql",
+      "line": 9,
+      "rule_id": "MIG-123",
+      "severity": "critical",
+      "description": "CLUSTER acquires AccessExclusiveLock for the full duration \u2014 for a 4B-row table this is days of complete unavailability. CLUSTER is also one-time; INSERT/UPDATE traffic immediately undoes the ordering. For ordering benefits use pg_repack (online) or partition by time.",
+      "match_key": "cluster_blocking|telemetry_records",
+      "category": "blocking_cluster"
+    },
+    {
+      "file": "migration_007.sql",
+      "line": 11,
+      "rule_id": "MIG-124",
+      "severity": "medium",
+      "description": "GIN index on JSONB tags column without specifying jsonb_path_ops doubles index size and slows updates. If queries only use containment (@>), `USING gin(tags jsonb_path_ops)` is dramatically smaller and faster.",
+      "match_key": "gin_index_options|tags",
+      "category": "gin_path_ops"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_007.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

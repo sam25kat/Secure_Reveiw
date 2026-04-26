@@ -1,0 +1,52 @@
+{
+  "scenario_id": "dep_023",
+  "description": "Mix of private (internal) and public package names without explicit index restriction \u2014 classic dependency confusion attack vector",
+  "review_checklist": [
+    "Identify packages that should be private and verify index configuration",
+    "Check for index-url vs extra-index-url priority",
+    "Audit naming conventions for private packages (scoped vs unscoped)"
+  ],
+  "ground_truth": [
+    {
+      "file": "pip.conf",
+      "line": 2,
+      "rule_id": "DEP-024",
+      "severity": "critical",
+      "description": "extra-index-url = https://pypi.org/simple combined with private-package names creates dependency-confusion exposure (Birsan-style attack). Pip queries ALL configured indexes for each package; a public package on PyPI with a higher version number than the internal one is preferred. Attackers register internal-looking names with version 99.0.0. Mitigation: use index-url (not extra-index-url) pointing at internal mirror that proxies PyPI for known-public, or use scoped names.",
+      "match_key": "extra-index-url",
+      "category": "dependency_confusion"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-024",
+      "severity": "high",
+      "description": "'acme-internal-utils' is named to suggest internal use but uses the public PyPI namespace. Combined with extra-index-url (line in pip.conf), an attacker can publish a package with this exact name on PyPI at version 99.0.0; pip will install the attacker's package preferentially. Use distinct prefix like '@acme/internal-utils' or pin internal index explicitly.",
+      "match_key": "acme-internal-utils",
+      "category": "naming_collision_risk"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-024",
+      "severity": "high",
+      "description": "Same issue: 'internal-billing-helpers' is in PyPI namespace and exposes dependency confusion.",
+      "match_key": "internal-billing-helpers",
+      "category": "naming_collision_risk"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-024",
+      "severity": "high",
+      "description": "'private-data-pipeline' \u2014 same dependency confusion exposure.",
+      "match_key": "private-data-pipeline",
+      "category": "naming_collision_risk"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt",
+    "pip.conf"
+  ],
+  "available_files": []
+}

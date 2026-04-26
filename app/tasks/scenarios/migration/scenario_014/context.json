@@ -1,0 +1,21 @@
+{
+  "tables": {
+    "invoices": {
+      "row_count": 180000000,
+      "writes_per_sec": 60
+    },
+    "invoice_lines": {
+      "row_count": 1200000000,
+      "writes_per_sec": 240
+    },
+    "tenants": {
+      "row_count": 8000
+    },
+    "customers": {
+      "row_count": 45000000
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

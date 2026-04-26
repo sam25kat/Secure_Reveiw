@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_013",
+  "description": "Terraform EKS production cluster \u2014 review control-plane security and observability",
+  "review_checklist": [
+    "Verify EKS control-plane logging is enabled",
+    "Check Kubernetes API endpoint exposure",
+    "Verify envelope encryption for secrets",
+    "Check version freshness",
+    "Audit node group SSH access"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 4,
+      "rule_id": "IAC-028",
+      "severity": "high",
+      "description": "EKS version 1.21 reached EOL February 2023 \u2014 no security patches; upgrade to 1.29+",
+      "match_key": "aws_eks_cluster.main|eol_eks_version",
+      "category": "eol_kubernetes_version"
+    },
+    {
+      "file": "main.tf",
+      "line": 8,
+      "rule_id": "IAC-029",
+      "severity": "critical",
+      "description": "EKS endpoint_public_access=true with public_access_cidrs=0.0.0.0/0 \u2014 Kubernetes API server exposed to entire internet",
+      "match_key": "aws_eks_cluster.main|public_kubernetes_api",
+      "category": "public_kubernetes_api"
+    },
+    {
+      "file": "main.tf",
+      "line": 7,
+      "rule_id": "IAC-030",
+      "severity": "high",
+      "description": "endpoint_private_access=false \u2014 workloads must reach API server via public endpoint, traffic leaves VPC",
+      "match_key": "aws_eks_cluster.main|private_endpoint_disabled",
+      "category": "private_endpoint_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 14,
+      "rule_id": "IAC-031",
+      "severity": "high",
+      "description": "encryption_config.resources is empty \u2014 Kubernetes secrets stored unencrypted in etcd",
+      "match_key": "aws_eks_cluster.main|secrets_encryption_disabled",
+      "category": "secrets_encryption_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 1,
+      "rule_id": "IAC-032",
+      "severity": "high",
+      "description": "EKS cluster missing 'enabled_cluster_log_types' \u2014 no audit, authenticator, or controller-manager logs",
+      "match_key": "aws_eks_cluster.main|control_plane_logging_disabled",
+      "category": "control_plane_logging_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 30,
+      "rule_id": "IAC-033",
+      "severity": "high",
+      "description": "Node group has SSH key but source_security_group_ids=[] \u2014 SSH access not restricted to bastion",
+      "match_key": "aws_eks_node_group.workers|unrestricted_ssh",
+      "category": "unrestricted_ssh"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

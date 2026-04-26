@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_007",
+  "description": "RDS PostgreSQL + EBS data volume \u2014 review production database posture",
+  "review_checklist": [
+    "Check for publicly accessible databases",
+    "Verify encryption at rest on all storage",
+    "Check security group ingress rules",
+    "Verify backup retention policies",
+    "Check for hardcoded credentials"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 11,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "RDS instance hardcodes admin password in source \u2014 use AWS Secrets Manager or terraform variables",
+      "match_key": "aws_db_instance.analytics|hardcoded_secret",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "main.tf",
+      "line": 12,
+      "rule_id": "IAC-001",
+      "severity": "critical",
+      "description": "RDS instance is publicly_accessible=true \u2014 exposes database directly to internet",
+      "match_key": "aws_db_instance.analytics|public_access",
+      "category": "public_access"
+    },
+    {
+      "file": "main.tf",
+      "line": 13,
+      "rule_id": "IAC-002",
+      "severity": "high",
+      "description": "RDS storage_encrypted=false \u2014 data at rest unencrypted, fails most compliance frameworks",
+      "match_key": "aws_db_instance.analytics|encryption_at_rest",
+      "category": "encryption_at_rest"
+    },
+    {
+      "file": "main.tf",
+      "line": 14,
+      "rule_id": "IAC-006",
+      "severity": "high",
+      "description": "RDS backup_retention_period=0 disables automated backups \u2014 no recovery on failure",
+      "match_key": "aws_db_instance.analytics|backups_disabled",
+      "category": "backups_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 25,
+      "rule_id": "IAC-004",
+      "severity": "critical",
+      "description": "Security group allows PostgreSQL (5432) from 0.0.0.0/0 \u2014 entire internet has database access",
+      "match_key": "aws_security_group.db_sg|permissive_security_group",
+      "category": "permissive_security_group"
+    },
+    {
+      "file": "main.tf",
+      "line": 33,
+      "rule_id": "IAC-002",
+      "severity": "high",
+      "description": "EBS volume encrypted=false \u2014 disk-level data unencrypted on EC2 instance",
+      "match_key": "aws_ebs_volume.data|encryption_at_rest",
+      "category": "encryption_at_rest"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

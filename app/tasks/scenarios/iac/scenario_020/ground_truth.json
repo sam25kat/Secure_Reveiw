@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_020",
+  "description": "Kubernetes — Deployment for production API. Identify image, secret, and pod-security issues.",
+  "review_checklist": [
+    "Verify image pinning",
+    "Identify hardcoded secrets in env",
+    "Check resource limits",
+    "Verify non-root container",
+    "Check debug/diagnostic flags"
+  ],
+  "ground_truth": [
+    {
+      "file": "deployment.yaml",
+      "line": 17,
+      "rule_id": "IAC-011",
+      "severity": "high",
+      "description": "image company/api:latest — using :latest tag breaks reproducible deploys and rollback",
+      "match_key": "Deployment.api-server|image_latest",
+      "category": "image_latest_tag"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 22,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "DATABASE_URL contains hardcoded admin password embedded in pod manifest",
+      "match_key": "Deployment.api-server|hardcoded_db_url",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 24,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "STRIPE_SECRET API key (sk_live_...) hardcoded as plain env var instead of using a Secret",
+      "match_key": "Deployment.api-server|hardcoded_stripe",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 26,
+      "rule_id": "IAC-036",
+      "severity": "medium",
+      "description": "DEBUG=true in production — verbose stack traces leak internal paths and library versions",
+      "match_key": "Deployment.api-server|debug_enabled",
+      "category": "debug_mode_enabled"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 16,
+      "rule_id": "IAC-037",
+      "severity": "medium",
+      "description": "No resources.limits block — container can consume unbounded CPU and memory, risking node OOM",
+      "match_key": "Deployment.api-server|missing_resource_limits",
+      "category": "missing_resource_limits"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 28,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "runAsUser: 0 — container runs as root, violates principle of least privilege",
+      "match_key": "Deployment.api-server|run_as_root",
+      "category": "run_as_root"
+    }
+  ],
+  "initial_files": [
+    "deployment.yaml"
+  ],
+  "available_files": []
+}

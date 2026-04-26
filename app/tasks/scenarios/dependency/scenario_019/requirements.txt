@@ -1,0 +1,7 @@
+# Application dependencies
+discord-utils-tools==1.4.2
+flask==3.0.0
+async-tools-py==2.1.0
+crypto-mining-helpers==0.5.0
+requests==2.31.0
+slack-py-tools==1.0.5

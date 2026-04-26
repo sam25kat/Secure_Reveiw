@@ -1,0 +1,65 @@
+{
+  "scenario_id": "migration_009",
+  "description": "Optimizing product search where 'metadata' JSONB column has become a de-facto schema. Review the index strategy, the denormalization, and the architectural decision to keep schemaless storage for queryable fields.",
+  "review_checklist": [
+    "Evaluate GIN with default ops vs jsonb_path_ops for the actual query patterns",
+    "Identify when JSONB queryable fields should be promoted to columns",
+    "Check ALTER TABLE + UPDATE pattern at scale",
+    "Consider write-amplification of duplicate keyword storage",
+    "Audit whether the schemaless choice still serves the workload"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_009.sql",
+      "line": 3,
+      "rule_id": "MIG-140",
+      "severity": "high",
+      "description": "GIN index without jsonb_path_ops creates a full inverted index over every key/value pair. Queries that only use containment (@>) work fine with the smaller jsonb_path_ops variant \u2014 the index is ~30% the size and ~2x faster to update. Use `USING gin(metadata jsonb_path_ops)` if queries are containment-only.",
+      "match_key": "gin_default_vs_path_ops",
+      "category": "gin_options"
+    },
+    {
+      "file": "migration_009.sql",
+      "line": 5,
+      "rule_id": "MIG-141",
+      "severity": "critical",
+      "description": "Plain UPDATE without batching on a 12M-row table acquires row-level locks on every row in a single transaction. WAL volume balloons (~8GB) and the migration holds locks for hours. Batch updates of 5-10K rows per transaction with brief commits.",
+      "match_key": "unbatched_update|products",
+      "category": "unbatched_update"
+    },
+    {
+      "file": "schema.sql",
+      "line": 7,
+      "rule_id": "MIG-142",
+      "severity": "high",
+      "description": "Architectural smell: brand/category/color are queryable, indexed, and central to search \u2014 they should be first-class columns, not JSON keys. Use of JSONB for high-cardinality, frequently-queried, schema-stable fields gives up: type checking, NOT NULL enforcement, foreign keys, query planner statistics, and pg_stat insights. Promote to columns; keep JSONB for genuinely variable per-product attributes.",
+      "match_key": "design|jsonb_for_queryable_fields",
+      "category": "schema_design_jsonb_abuse"
+    },
+    {
+      "file": "migration_009.sql",
+      "line": 13,
+      "rule_id": "MIG-143",
+      "severity": "medium",
+      "description": "searchable_keywords is a denormalized projection of metadata. Every product update now requires updating both columns \u2014 application logic must remain in sync indefinitely or use a generated column. Use GENERATED ALWAYS AS (...) STORED to enforce derivation.",
+      "match_key": "denormalization_drift|searchable_keywords",
+      "category": "denormalization_consistency"
+    },
+    {
+      "file": "migration_009.sql",
+      "line": 19,
+      "rule_id": "MIG-144",
+      "severity": "high",
+      "description": "Both indexes (idx_products_metadata, idx_products_keywords) cover overlapping query needs. Pick one. Two GIN indexes on the same table double write cost on every UPDATE and waste ~6GB of buffer cache.",
+      "match_key": "redundant_gin_indexes",
+      "category": "redundant_indexes"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_009.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

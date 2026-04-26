@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_014",
+  "description": "GitHub Actions workflow for production deployment \u2014 review CI/CD pipeline security",
+  "review_checklist": [
+    "Verify the workflow does not run untrusted PR code with secrets",
+    "Check action versions are pinned (commit SHA preferred)",
+    "Verify hardcoded credentials and use of secrets",
+    "Check job permissions (default is read+write to repo)",
+    "Verify checkout ref handling for pull_request events"
+  ],
+  "ground_truth": [
+    {
+      "file": "deploy.yml",
+      "line": 4,
+      "rule_id": "IAC-034",
+      "severity": "critical",
+      "description": "Workflow triggered on pull_request with full secrets \u2014 untrusted PR contributors can exfiltrate secrets via modified workflow",
+      "match_key": "deploy.yml|pull_request_with_secrets",
+      "category": "pull_request_pwn"
+    },
+    {
+      "file": "deploy.yml",
+      "line": 13,
+      "rule_id": "IAC-035",
+      "severity": "critical",
+      "description": "actions/checkout@v2 (unpinned tag) \u2014 supply-chain risk if v2 tag is moved. Pin to commit SHA: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29",
+      "match_key": "deploy.yml|unpinned_action",
+      "category": "unpinned_action"
+    },
+    {
+      "file": "deploy.yml",
+      "line": 15,
+      "rule_id": "IAC-036",
+      "severity": "critical",
+      "description": "checkout uses pull_request.head.sha \u2014 explicitly checks out PR code. Combined with secrets access this is the canonical 'pull_request_target pwn' pattern",
+      "match_key": "deploy.yml|checkout_pr_head",
+      "category": "checkout_pr_head"
+    },
+    {
+      "file": "deploy.yml",
+      "line": 21,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "AWS_ACCESS_KEY_ID hardcoded in workflow file \u2014 credential commits to git history forever",
+      "match_key": "deploy.yml|aws_key_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deploy.yml",
+      "line": 22,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "AWS_SECRET_ACCESS_KEY hardcoded \u2014 should reference secrets.AWS_SECRET_ACCESS_KEY",
+      "match_key": "deploy.yml|aws_secret_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "deploy.yml",
+      "line": 9,
+      "rule_id": "IAC-037",
+      "severity": "high",
+      "description": "Job has no 'permissions:' block \u2014 defaults to write access on all repo scopes (contents, packages, actions). Use principle of least privilege.",
+      "match_key": "deploy.yml|missing_permissions_block",
+      "category": "missing_permissions"
+    }
+  ],
+  "initial_files": [
+    "deploy.yml"
+  ],
+  "available_files": []
+}

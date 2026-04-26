@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:5
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass mypassword
+
+  postgres:
+    image: postgres:11
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: appdb
+    volumes:
+      - /var/lib/postgresql/data
+
+  app:
+    image: company/app:latest
+    ports:
+      - "0.0.0.0:8000:8000"
+    environment:
+      JWT_SECRET: super-secret-jwt-key-2023
+      STRIPE_KEY: sk_test_EXAMPLE_FAKE_KEY_FOR_TESTING
+      DEBUG: "true"
+    depends_on:
+      - redis
+      - postgres

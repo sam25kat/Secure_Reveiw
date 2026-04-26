@@ -1,0 +1,89 @@
+{
+  "scenario_id": "iac_009",
+  "description": "Production Dockerfile \u2014 review build artifact security",
+  "review_checklist": [
+    "Check for hardcoded secrets in ENV instructions",
+    "Verify base image freshness and pinning",
+    "Identify unnecessary capabilities (sudo, ssh)",
+    "Check for missing USER directive (default = root)",
+    "Verify ADD vs COPY usage"
+  ],
+  "ground_truth": [
+    {
+      "file": "Dockerfile",
+      "line": 1,
+      "rule_id": "IAC-012",
+      "severity": "high",
+      "description": "Base image ubuntu:18.04 reached EOL April 2023 \u2014 no further security patches",
+      "match_key": "FROM|eol_base_image",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 3,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "AWS_ACCESS_KEY_ID hardcoded in image layer \u2014 credentials baked into every container instance",
+      "match_key": "ENV|aws_credentials_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 4,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "AWS_SECRET_ACCESS_KEY hardcoded in image \u2014 credential leak via image registry",
+      "match_key": "ENV|aws_secret_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 5,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "DATABASE_URL with embedded password hardcoded in image",
+      "match_key": "ENV|database_url_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 9,
+      "rule_id": "IAC-013",
+      "severity": "high",
+      "description": "Installs openssh-server in container \u2014 anti-pattern, expands attack surface unnecessarily",
+      "match_key": "RUN|ssh_in_container",
+      "category": "ssh_in_container"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 11,
+      "rule_id": "IAC-014",
+      "severity": "high",
+      "description": "ADD downloads installer over HTTPS without checksum verification \u2014 supply chain risk",
+      "match_key": "ADD|unverified_download",
+      "category": "unverified_download"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 19,
+      "rule_id": "IAC-015",
+      "severity": "high",
+      "description": "EXPOSE 22 \u2014 should not expose SSH on production containers",
+      "match_key": "EXPOSE|ssh_port_exposed",
+      "category": "ssh_port_exposed"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 21,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "No USER directive \u2014 container runs as root by default. Add 'USER nobody' or non-root UID",
+      "match_key": "USER|missing_user_directive",
+      "category": "run_as_root"
+    }
+  ],
+  "initial_files": [
+    "Dockerfile"
+  ],
+  "available_files": []
+}

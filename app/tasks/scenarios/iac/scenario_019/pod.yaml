@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-tools
+  namespace: prod
+spec:
+  hostNetwork: true
+  hostPID: true
+  containers:
+    - name: debug
+      image: nicolaka/netshoot:latest
+      command: ["sleep", "infinity"]
+      securityContext:
+        privileged: true
+        runAsUser: 0
+        allowPrivilegeEscalation: true
+        capabilities:
+          add: ["SYS_ADMIN", "NET_ADMIN"]
+      volumeMounts:
+        - name: host-root
+          mountPath: /host
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+  volumes:
+    - name: host-root
+      hostPath:
+        path: /
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+  automountServiceAccountToken: true

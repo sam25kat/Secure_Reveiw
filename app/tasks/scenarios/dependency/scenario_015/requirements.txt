@@ -1,0 +1,7 @@
+# Production requirements
+django==5.0a1
+fastapi==0.100.0rc1
+sqlalchemy==2.0.0b3
+pydantic==2.0.0.dev1
+celery==5.4.0rc2
+redis==5.1.0b1

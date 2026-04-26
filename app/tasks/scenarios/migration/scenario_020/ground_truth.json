@@ -1,0 +1,83 @@
+{
+  "scenario_id": "migration_020",
+  "description": "Migration to introduce range partitioning by created_at on the documents table. Review the partition key choice, and whether it serves both the technical and tenant-isolation requirements.",
+  "review_checklist": [
+    "Identify partition key choice vs query patterns and tenant isolation",
+    "Evaluate global vs partition-local indexes",
+    "Check rollover plan for new time partitions",
+    "Audit migration data-move strategy (this script doesn't include it)",
+    "Consider Pareto-skewed write distribution"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_020.sql",
+      "line": 11,
+      "rule_id": "MIG-250",
+      "severity": "critical",
+      "description": "Partition key choice (created_at) is wrong for this workload. The table's query patterns are 90% tenant-scoped: `WHERE tenant_id = ? AND ...`. Range-by-time forces every tenant query to touch every partition (no partition pruning). Worse: writes pile into the LATEST partition (current month), creating a hot partition while older partitions sit cold. Correct choice: PARTITION BY HASH (tenant_id) with 32-128 partitions for even write distribution, OR PARTITION BY LIST (tenant_id) for per-tenant isolation of large enterprise tenants.",
+      "match_key": "wrong_partition_key|created_at_vs_tenant_id",
+      "category": "partition_key_choice"
+    },
+    {
+      "file": "migration_020.sql",
+      "line": 11,
+      "rule_id": "MIG-251",
+      "severity": "critical",
+      "description": "Pareto-skewed workload (top 50 of 5000 tenants = 80% of writes) is the textbook case for hybrid partitioning: list-partition the top 50 enterprise tenants into dedicated partitions, hash-partition the remaining 4950 into 16-32 buckets. Pure time-range guarantees the worst possible balance: top tenants saturate the latest partition.",
+      "match_key": "design|hybrid_partitioning",
+      "category": "partition_strategy_pareto"
+    },
+    {
+      "file": "migration_020.sql",
+      "line": 7,
+      "rule_id": "MIG-252",
+      "severity": "high",
+      "description": "PRIMARY KEY (id, created_at) is a structural anti-pattern made necessary by the partition key choice \u2014 partition key MUST be in the PK for partition pruning. This means id alone is no longer unique; FK references from document_versions(document_id) and document_collaborators(document_id) BREAK because they reference id only. The migration is fundamentally incomplete: dependent tables need either (id, created_at) FKs or a different partitioning approach.",
+      "match_key": "broken_fk_with_partitioning",
+      "category": "partition_pk_breaks_fks"
+    },
+    {
+      "file": "migration_020.sql",
+      "line": 22,
+      "rule_id": "MIG-253",
+      "severity": "high",
+      "description": "idx_documents_new_tenant is a partitioned (global-style) index, but PG implements it as one local index per partition. Queries with `WHERE tenant_id = ?` (no created_at filter) must probe ALL partitions' indexes \u2014 N times the latency. With time-range partitioning + tenant-scoped queries, this design is doubly bad.",
+      "match_key": "index_per_partition_overhead",
+      "category": "partitioned_index_pruning"
+    },
+    {
+      "file": "migration_020.sql",
+      "line": 16,
+      "rule_id": "MIG-254",
+      "severity": "high",
+      "description": "Only three partitions defined (2024-2026). No automated partition rollover plan: when 2027 data arrives, INSERTs FAIL (no matching partition). Use pg_partman or a scheduled migration that creates partitions ahead of time. Migration as written is a ticking time bomb.",
+      "match_key": "missing_partition_rollover",
+      "category": "partition_rollover_missing"
+    },
+    {
+      "file": "migration_020.sql",
+      "line": 1,
+      "rule_id": "MIG-255",
+      "severity": "high",
+      "description": "Migration creates documents_new alongside documents but provides no data-move plan, no FK update plan, no application cutover step. Migration is unfinished. Required additional steps: (1) backfill from documents \u2192 documents_new in batches, (2) trigger to dual-write during cutover, (3) atomic rename swap, (4) update FK targets in dependent tables.",
+      "match_key": "incomplete_migration_data_move",
+      "category": "incomplete_migration"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-256",
+      "severity": "medium",
+      "description": "Architectural review: with 5K tenants and Pareto-skewed traffic, single-cluster shared schema is approaching its limits. Consider a 'cell-based' architecture: enterprise tenants get dedicated clusters, free/pro tenants share a multi-tenant cluster. Application routes by tenant_id at the connection layer. This eliminates the partition-key dilemma entirely.",
+      "match_key": "design|cell_based_architecture",
+      "category": "architecture_multi_tenancy"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_020.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

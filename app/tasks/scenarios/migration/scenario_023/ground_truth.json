@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_023",
+  "description": "Optimizing the workspace dashboard query that lists recent documents (no body needed). Review TOAST, storage parameters, index design, and column ordering.",
+  "review_checklist": [
+    "Distinguish STORAGE EXTERNAL vs EXTENDED vs MAIN for large columns",
+    "Identify covering index opportunities for fetch-light queries",
+    "Audit ALTER STORAGE rewrite implications",
+    "Consider column ordering for null bitmap and pad alignment"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_023.sql",
+      "line": 4,
+      "rule_id": "MIG-280",
+      "severity": "high",
+      "description": "Index lacks INCLUDE for the dashboard query. The query fetches `id, title, last_edited_at` \u2014 `id` is in the PK index, `last_edited_at` is the sort key, but `title` is not in the index. Each row returned does a heap fetch to get title. With body and yjs_state in the heap row, the heap page is large and rarely cache-resident. Use `CREATE INDEX ... INCLUDE (title)` for an index-only scan.",
+      "match_key": "missing_include|dashboard_query",
+      "category": "covering_index"
+    },
+    {
+      "file": "migration_023.sql",
+      "line": 6,
+      "rule_id": "MIG-281",
+      "severity": "critical",
+      "description": "STORAGE EXTERNAL on `body` forces TOAST without compression. body is collaborative-edit text \u2014 highly compressible (>5:1 typical). EXTENDED (default for TEXT) gives compression + out-of-line storage. EXTERNAL only suppresses compression, increasing TOAST table size 5x and slowing reads. Wrong choice. Reverse to EXTENDED or leave at default.",
+      "match_key": "storage_external_uncompressed_text",
+      "category": "toast_compression_misuse"
+    },
+    {
+      "file": "migration_023.sql",
+      "line": 8,
+      "rule_id": "MIG-282",
+      "severity": "medium",
+      "description": "STORAGE EXTERNAL on yjs_state (BYTEA, CRDT binary) is correct \u2014 CRDT serialized state is already entropy-coded and incompressible. So EXTERNAL is right here, but only by coincidence. Document the reasoning explicitly in a comment.",
+      "match_key": "storage_external_correct_for_crdt",
+      "category": "toast_strategy_correct"
+    },
+    {
+      "file": "migration_023.sql",
+      "line": 6,
+      "rule_id": "MIG-283",
+      "severity": "critical",
+      "description": "ALTER COLUMN ... SET STORAGE on a populated table acquires AccessExclusiveLock and rewrites EVERY existing row's TOAST entries to match the new strategy. For a 12M-document table where bodies average 800KB, this is several TB of data to rewrite. Multi-day outage. PG does not perform this lazily \u2014 the rewrite is eager.",
+      "match_key": "set_storage_full_rewrite",
+      "category": "alter_storage_blocking"
+    },
+    {
+      "file": "migration_023.sql",
+      "line": 10,
+      "rule_id": "MIG-284",
+      "severity": "high",
+      "description": "Adding preview_text VARCHAR(280) without DEFAULT makes the column nullable initially. Architecturally better: use GENERATED ALWAYS AS (LEFT(body, 280)) STORED \u2014 automatic, can never drift. The current approach requires application logic to maintain it.",
+      "match_key": "manual_derivation_vs_generated_column",
+      "category": "generated_column_opportunity"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-285",
+      "severity": "medium",
+      "description": "Column ordering inefficiency: BIGINT, VARCHAR(300), TEXT, BYTEA, INTEGER, INTEGER, BOOLEAN, TIMESTAMPTZ... mixes 8-byte and smaller types. PostgreSQL pads each column to alignment boundaries \u2014 the BOOLEAN after BIGINT wastes 7 bytes per row of padding. Reorder to fixed-width-first: BIGINT, INTEGER, INTEGER, TIMESTAMPTZ x2, BOOLEAN, then variable-length. On 12M rows this saves ~80MB and improves cache density.",
+      "match_key": "column_alignment_padding",
+      "category": "column_ordering"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_023.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

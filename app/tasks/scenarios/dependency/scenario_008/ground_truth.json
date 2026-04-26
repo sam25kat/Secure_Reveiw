@@ -1,0 +1,51 @@
+{
+  "scenario_id": "dep_008",
+  "description": "Python API service requirements \u2014 subtle typosquats and confusable package names",
+  "review_checklist": [
+    "Distinguish near-identical legitimate vs squatted package names",
+    "Check confusable / homograph-style names",
+    "Verify each package on PyPI authoritative metadata"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-001",
+      "severity": "critical",
+      "description": "Typosquat: 'python-dateutils' (plural). Genuine package is 'python-dateutil' (singular). The plural form is a known squatted package with a long history of credential harvesting payloads.",
+      "match_key": "python-dateutils",
+      "category": "typosquat_subtle"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-003",
+      "severity": "critical",
+      "description": "Confusable package: 'crypto' on PyPI is a known malware redirector. The real cryptography library is 'cryptography' (PyCA). The 'crypto' package and 'pycrypto' (also unmaintained) should never be installed in production.",
+      "match_key": "crypto",
+      "category": "malicious_package"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 8,
+      "rule_id": "DEP-001",
+      "severity": "high",
+      "description": "Typosquat: 'beautifulsoup' (no version suffix). Genuine package on PyPI is 'beautifulsoup4'. Bare 'beautifulsoup' has been used for malicious uploads in the past.",
+      "match_key": "beautifulsoup ",
+      "category": "typosquat_legacy_name"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-004",
+      "severity": "high",
+      "description": "Pydantic 1.x reaches end-of-life June 2024; 1.10.13 is the last 1.x release. While not a direct CVE, EOL frameworks accumulate unpatched issues. Plan migration to pydantic 2.x.",
+      "match_key": "pydantic==1.10",
+      "category": "eol_dependency"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

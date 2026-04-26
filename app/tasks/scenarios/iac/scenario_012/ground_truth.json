@@ -1,0 +1,98 @@
+{
+  "scenario_id": "iac_012",
+  "description": "Docker Compose stack for production \u2014 review service exposure and secret handling",
+  "review_checklist": [
+    "Check for hardcoded secrets in environment variables",
+    "Verify port bindings (0.0.0.0 vs 127.0.0.1)",
+    "Check image versions and EOL bases",
+    "Check for DEBUG mode enabled in production",
+    "Verify volumes are persistent (named, not anonymous)"
+  ],
+  "ground_truth": [
+    {
+      "file": "docker-compose.yml",
+      "line": 5,
+      "rule_id": "IAC-012",
+      "severity": "high",
+      "description": "redis:5 reached EOL in 2022 \u2014 no security patches; upgrade to redis:7-alpine",
+      "match_key": "redis|eol_image",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 7,
+      "rule_id": "IAC-026",
+      "severity": "high",
+      "description": "Redis port 6379 bound to all interfaces (0.0.0.0:6379) \u2014 exposes cache to host network",
+      "match_key": "redis|exposed_port",
+      "category": "exposed_internal_port"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 8,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "Redis password 'mypassword' hardcoded in command \u2014 visible in process list and compose file",
+      "match_key": "redis|hardcoded_password",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 12,
+      "rule_id": "IAC-012",
+      "severity": "high",
+      "description": "postgres:11 reached EOL November 2023 \u2014 upgrade to postgres:16",
+      "match_key": "postgres|eol_image",
+      "category": "eol_base_image"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 17,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "POSTGRES_PASSWORD set to literal 'postgres' (default/weak) \u2014 trivially guessable",
+      "match_key": "postgres|weak_password",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 25,
+      "rule_id": "IAC-011",
+      "severity": "medium",
+      "description": "App image tagged :latest \u2014 non-reproducible deploy",
+      "match_key": "app|image_latest_tag",
+      "category": "image_latest_tag"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 29,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "JWT_SECRET hardcoded in compose env \u2014 credential leak via VCS history",
+      "match_key": "app|jwt_secret_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 30,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "STRIPE_KEY (sk_live_*) hardcoded \u2014 production payment credential exposed in source",
+      "match_key": "app|stripe_key_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "docker-compose.yml",
+      "line": 31,
+      "rule_id": "IAC-027",
+      "severity": "high",
+      "description": "DEBUG=true in production compose file \u2014 leaks stack traces and internal state",
+      "match_key": "app|debug_mode_enabled",
+      "category": "debug_mode_enabled"
+    }
+  ],
+  "initial_files": [
+    "docker-compose.yml"
+  ],
+  "available_files": []
+}

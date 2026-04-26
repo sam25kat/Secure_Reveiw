@@ -1,0 +1,69 @@
+{
+  "scenario_id": "dep_015",
+  "description": "Production requirements pinning pre-release versions (alpha, beta, rc, dev). These are not stable release artifacts.",
+  "review_checklist": [
+    "Identify each pre-release version specifier (a, b, rc, dev, post)",
+    "Audit whether stable releases exist for the targeted version",
+    "Check for known issues with pre-release pins"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-015",
+      "severity": "critical",
+      "description": "Django 5.0a1 is an alpha release. Alpha releases have known bugs and may have backwards-incompatible API changes before stable. Use the stable Django 5.0+.",
+      "match_key": "django==5.0a",
+      "category": "alpha_in_prod"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-015",
+      "severity": "high",
+      "description": "FastAPI 0.100.0rc1 is a release-candidate version. RCs are not for production; the corresponding stable 0.100.0 was released shortly after.",
+      "match_key": "fastapi==0.100.0rc",
+      "category": "rc_in_prod"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-015",
+      "severity": "high",
+      "description": "SQLAlchemy 2.0.0b3 is beta. SQLAlchemy 2.0+ stable is available; betas should not be in production manifests.",
+      "match_key": "sqlalchemy==2.0.0b",
+      "category": "beta_in_prod"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-015",
+      "severity": "critical",
+      "description": "Pydantic 2.0.0.dev1 is a development release \u2014 explicitly not for any non-development use. dev versions are frequently broken.",
+      "match_key": "pydantic==2.0.0.dev",
+      "category": "dev_in_prod"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-015",
+      "severity": "high",
+      "description": "Celery 5.4.0rc2 \u2014 release candidate.",
+      "match_key": "celery==5.4.0rc",
+      "category": "rc_in_prod"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-015",
+      "severity": "high",
+      "description": "redis 5.1.0b1 \u2014 beta version.",
+      "match_key": "redis==5.1.0b",
+      "category": "beta_in_prod"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

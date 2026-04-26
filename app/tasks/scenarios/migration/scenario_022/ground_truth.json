@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_022",
+  "description": "Optimizing the 'recent active listings by category' query on a 600M-row table with skewed state distribution. Review the index strategy, statistics target, and query plan stability.",
+  "review_checklist": [
+    "Identify query plan instability from skewed column distributions",
+    "Evaluate partial index for the 95%-active row pattern",
+    "Audit STATISTICS target tradeoffs",
+    "Check VACUUM ANALYZE timing and scope"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_022.sql",
+      "line": 6,
+      "rule_id": "MIG-270",
+      "severity": "high",
+      "description": "Index includes `state` as a middle column despite state having extreme skew (95% 'active'). The state column is essentially constant for the target query \u2014 it adds an index column but no selectivity. Use a PARTIAL INDEX: `CREATE INDEX ... ON listings(category_id, created_at DESC) WHERE state = 'active'`. Index becomes ~95% smaller and faster, and the predicate is automatically applied for matching queries.",
+      "match_key": "index_includes_low_selectivity_skewed_column",
+      "category": "partial_index_for_skewed_data"
+    },
+    {
+      "file": "migration_022.sql",
+      "line": 6,
+      "rule_id": "MIG-271",
+      "severity": "critical",
+      "description": "CREATE INDEX without CONCURRENTLY on a 600M-row table holds SHARE lock during build (~4-8 hours blocking writes). Use CREATE INDEX CONCURRENTLY.",
+      "match_key": "non_concurrent_index|listings",
+      "category": "non_concurrent_index"
+    },
+    {
+      "file": "migration_022.sql",
+      "line": 8,
+      "rule_id": "MIG-272",
+      "severity": "medium",
+      "description": "ALTER COLUMN ... SET STATISTICS 1000 increases the most-common-values list size. For a column with only 4 distinct states, this provides no planner benefit (default 100 already captures all values). Wasted memory in pg_statistic. Apply SET STATISTICS to columns with HIGH cardinality and skewed distributions (price_cents, seller_id where Pareto applies). Skipping or moving to title/category_id more meaningful.",
+      "match_key": "set_statistics_misapplied|state_low_cardinality",
+      "category": "statistics_target_misuse"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-273",
+      "severity": "high",
+      "description": "Architectural improvement: skewed columns benefit from extended statistics (PG 10+) \u2014 `CREATE STATISTICS ... ON (category_id, state) FROM listings` lets the planner know about correlation between columns. Without this, the planner assumes independence and misestimates row counts on multi-column predicates by 10-100x, picking wrong join methods.",
+      "match_key": "missing_extended_statistics",
+      "category": "extended_statistics"
+    },
+    {
+      "file": "migration_022.sql",
+      "line": 10,
+      "rule_id": "MIG-274",
+      "severity": "medium",
+      "description": "VACUUM ANALYZE listings inline is the wrong approach for a 600M-row table \u2014 VACUUM is asynchronous by design and autovacuum will run it. The synchronous variant blocks the migration script for hours and provides no benefit over autovacuum. Use ANALYZE alone (skip VACUUM) for immediate stats refresh.",
+      "match_key": "vacuum_in_migration",
+      "category": "vacuum_blocking_migration"
+    },
+    {
+      "file": "schema.sql",
+      "line": 16,
+      "rule_id": "MIG-275",
+      "severity": "medium",
+      "description": "Existing idx_listings_state alone is wasted space. With 95% of rows in one state, the planner correctly chooses SeqScan + filter for state='active' queries (the index would still scan 570M of 600M rows). Drop this index \u2014 saves ~12GB and reduces write amplification.",
+      "match_key": "useless_index_skewed_column",
+      "category": "redundant_index_skewed"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_022.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

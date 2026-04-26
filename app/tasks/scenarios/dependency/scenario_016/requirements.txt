@@ -1,0 +1,7 @@
+# Legacy app — last touched 2 years ago
+flask-bcrypt==0.7.1
+python2-secrets==1.0.5
+ipython==5.10.0
+mongokit==0.9.1.1
+flask-genshi==0.8
+suds==0.4

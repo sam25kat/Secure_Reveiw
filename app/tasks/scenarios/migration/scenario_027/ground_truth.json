@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_027",
+  "description": "Modifying a PostgreSQL ENUM type used in a subscriptions table. The application is mid-deployment with rolling traffic. Review what works, what doesn't, and what's downright dangerous.",
+  "review_checklist": [
+    "Identify which ENUM operations are supported in PostgreSQL",
+    "Verify ALTER TYPE ADD VALUE transaction semantics",
+    "Check ENUM RENAME and DROP support",
+    "Audit value-range gaps and ordering on ENUM values"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_027.sql",
+      "line": 4,
+      "rule_id": "MIG-320",
+      "severity": "critical",
+      "description": "ALTER TYPE ... ADD VALUE 'paused' cannot be run inside a transaction block (PG limitation, until very recent versions added partial support). Migration tools that wrap changes in transactions silently fail or error. Run this statement OUTSIDE any explicit transaction. Note: PG 12+ allows ADD VALUE in a transaction, BUT the new value cannot be USED in the same transaction (it isn't visible until commit) \u2014 meaning the UPDATE on line 11 referencing 'paused' could fail if bundled with line 4.",
+      "match_key": "alter_type_add_value_in_txn",
+      "category": "enum_alter_constraints"
+    },
+    {
+      "file": "migration_027.sql",
+      "line": 6,
+      "rule_id": "MIG-321",
+      "severity": "critical",
+      "description": "ALTER TYPE ... RENAME VALUE works, but in a rolling deployment, OLD application instances still emit 'incomplete' for new INSERTs while the migration is running. After the rename, those INSERTs fail with 'invalid input value for enum'. Sequence: deploy new code that handles BOTH 'incomplete' and 'pending_payment' \u2192 run RENAME \u2192 deploy code that uses only 'pending_payment'. The migration as written breaks rolling deployment.",
+      "match_key": "enum_rename_breaks_rolling_deploy",
+      "category": "rolling_deploy_enum_rename"
+    },
+    {
+      "file": "migration_027.sql",
+      "line": 8,
+      "rule_id": "MIG-322",
+      "severity": "critical",
+      "description": "PostgreSQL DOES NOT SUPPORT `ALTER TYPE ... DROP VALUE`. This statement will fail with a syntax error. To remove an enum value, you must: (1) update all rows that use it (line 11 attempts this but is wrong, see MIG-323), (2) recreate the type without the value, (3) cast every column using the type to the new type. Cumbersome multi-step migration with table rewrites.",
+      "match_key": "alter_type_drop_value_unsupported",
+      "category": "enum_drop_value_unsupported"
+    },
+    {
+      "file": "migration_027.sql",
+      "line": 11,
+      "rule_id": "MIG-323",
+      "severity": "high",
+      "description": "UPDATE migrating 'past_due' \u2192 'paused' is the wrong semantic \u2014 past_due and paused are different states (past_due = payment failed but still active; paused = explicitly paused by user). This data migration silently corrupts billing reporting. Audit data-mapping decisions with stakeholders.",
+      "match_key": "data_migration_semantic_change",
+      "category": "data_migration_correctness"
+    },
+    {
+      "file": "schema.sql",
+      "line": 1,
+      "rule_id": "MIG-324",
+      "severity": "high",
+      "description": "Architectural critique: ENUM in PostgreSQL is rigid by design \u2014 adds are append-only, deletes are unsupported, renames are dangerous in rolling deploys. For state machines that evolve, prefer a small reference table `subscription_statuses(code VARCHAR, label VARCHAR, is_active BOOLEAN, sort_order INTEGER)` with a FK from subscriptions.status. Adding/deprecating values becomes a row INSERT/UPDATE.",
+      "match_key": "design|enum_vs_lookup_table",
+      "category": "architecture_enum_rigidity"
+    },
+    {
+      "file": "schema.sql",
+      "line": 22,
+      "rule_id": "MIG-325",
+      "severity": "medium",
+      "description": "subscription_events stores from_status and to_status as the same enum type. After a rename, historical events still reference the OLD value semantically (pre-rename) but the type now stores 'pending_payment'. Audit log integrity broken: querying 'how many subscriptions transitioned out of incomplete state' becomes ambiguous. Append-only audit logs should use VARCHAR with the historical label preserved as text.",
+      "match_key": "audit_log_enum_drift",
+      "category": "audit_log_enum_safety"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_027.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

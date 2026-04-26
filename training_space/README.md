@@ -3,8 +3,8 @@ title: SecureReview GRPO Trainer
 emoji: 🔐
 colorFrom: red
 colorTo: gray
-sdk: gradio
-sdk_version: "4.40.0"
+sdk: streamlit
+sdk_version: "1.35.0"
 app_file: app.py
 pinned: false
 hardware: t4-small

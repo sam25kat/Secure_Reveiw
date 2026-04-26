@@ -1,0 +1,34 @@
+{
+  "tables": {
+    "orders": {
+      "row_count": 24000000,
+      "writes_per_sec": 480,
+      "reads_per_sec": 9200
+    },
+    "customers": {
+      "row_count": 4500000,
+      "writes_per_sec": 35,
+      "reads_per_sec": 1800
+    },
+    "order_items": {
+      "row_count": 86000000,
+      "writes_per_sec": 1300,
+      "reads_per_sec": 5600
+    }
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "downtime_budget_seconds": 0,
+    "regions": 3
+  },
+  "database": {
+    "engine": "PostgreSQL 15.3",
+    "max_connections": 800,
+    "pgbouncer_pool_mode": "transaction"
+  },
+  "dependent_services": [
+    "checkout-api",
+    "fulfillment-worker",
+    "analytics-pipeline"
+  ]
+}

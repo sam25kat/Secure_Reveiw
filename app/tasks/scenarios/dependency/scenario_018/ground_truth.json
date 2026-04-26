@@ -1,0 +1,78 @@
+{
+  "scenario_id": "dep_018",
+  "description": "Node.js project with deprecated packages, known CVEs, and pre/postinstall hooks",
+  "review_checklist": [
+    "Identify deprecated packages and their replacements",
+    "Audit lifecycle scripts (pre/postinstall) for supply-chain exposure",
+    "Map versions to known CVEs"
+  ],
+  "ground_truth": [
+    {
+      "file": "package.json",
+      "line": 9,
+      "rule_id": "DEP-019",
+      "severity": "medium",
+      "description": "left-pad: famously the package whose 2016 unpublishing broke half of npm. Functionality is trivially replaceable with String.prototype.padStart. Continued use is a code smell.",
+      "match_key": "left-pad",
+      "category": "trivial_dependency"
+    },
+    {
+      "file": "package.json",
+      "line": 10,
+      "rule_id": "DEP-020",
+      "severity": "high",
+      "description": "request: officially deprecated in February 2020. No further updates including for security. Use undici, axios, or native fetch.",
+      "match_key": "\"request\":",
+      "category": "deprecated_package"
+    },
+    {
+      "file": "package.json",
+      "line": 11,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "node-fetch 2.6.1 has CVE-2022-0235 (exfiltration of secure headers in cross-domain redirects) \u2014 patched in 2.6.7. Also node-fetch 2.x is in maintenance-only mode; 3.x is ESM-only.",
+      "match_key": "node-fetch",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 13,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "tar 4.4.0 has CVE-2021-32803 (arbitrary file write via symlink) and CVE-2021-37701 (arbitrary file overwrite). Patched in 4.4.18+, 5.0.10+, 6.1.9+.",
+      "match_key": "\"tar\": \"4.4.0\"",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 14,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "ws 6.2.0 has CVE-2024-37890 (DoS via prototype pollution). Patched in 8.17.1, 7.5.10. 6.x is no longer maintained.",
+      "match_key": "\"ws\":",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 15,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "minimatch 3.0.4 has CVE-2022-3517 (ReDoS). Patched in 3.0.5+ and 5.0+. The 3.x version is widely depended-on but vulnerable to crafted patterns.",
+      "match_key": "minimatch",
+      "category": "known_cve"
+    },
+    {
+      "file": "package.json",
+      "line": 4,
+      "rule_id": "DEP-011",
+      "severity": "high",
+      "description": "preinstall and postinstall scripts execute on every npm install. They run with the developer's full filesystem access. Audit ./scripts/setup.js and ./scripts/finalize.js \u2014 these are common locations for supply-chain compromise. Consider running with --ignore-scripts in CI.",
+      "match_key": "preinstall",
+      "category": "lifecycle_scripts_audit"
+    }
+  ],
+  "initial_files": [
+    "package.json"
+  ],
+  "available_files": []
+}

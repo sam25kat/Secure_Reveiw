@@ -1,0 +1,17 @@
+{
+  "tables": {
+    "transactions": {
+      "row_count": 1500000000,
+      "writes_per_sec": 850,
+      "size_gb": 320
+    }
+  },
+  "dependent_services": [
+    "dashboard-api",
+    "billing-worker",
+    "fraud-detection"
+  ],
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

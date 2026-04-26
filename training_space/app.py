@@ -1,89 +1,136 @@
-import gradio as gr
-import subprocess
 import sys
+import types
+
+for _mod in ("audioop", "pyaudioop"):
+    if _mod not in sys.modules:
+        sys.modules[_mod] = types.ModuleType(_mod)
+
+import streamlit as st
+import subprocess
 import os
 import json
 import threading
+import time
 
-PLOTS_DIR = "./plots"
+PLOTS_DIR    = "./plots"
+LOG_FILE     = "./training.log"
+DONE_FILE    = "./training_done.txt"
+PID_FILE     = "./training.pid"
 RESULTS_FILE = f"{PLOTS_DIR}/results.json"
 
 
-def run_training():
+def is_training_alive():
+    if not os.path.exists(PID_FILE):
+        return False
+    try:
+        with open(PID_FILE) as f:
+            pid = int(f.read().strip())
+        os.kill(pid, 0)
+        return True
+    except (ProcessLookupError, ValueError, PermissionError):
+        return False
+
+
+def _run():
     os.makedirs(PLOTS_DIR, exist_ok=True)
-    proc = subprocess.Popen(
-        [sys.executable, "train.py"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-    )
-    output = []
-    for line in proc.stdout:
-        output.append(line.rstrip())
-        yield "\n".join(output), None, None, None, None
+    with open(LOG_FILE, "w", buffering=1) as log:
+        proc = subprocess.Popen(
+            [sys.executable, "train.py"],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+        )
+        with open(PID_FILE, "w") as f:
+            f.write(str(proc.pid))
+        proc.wait()
+    with open(DONE_FILE, "w") as f:
+        f.write("done")
+    if os.path.exists(PID_FILE):
+        try:
+            os.remove(PID_FILE)
+        except OSError:
+            pass
 
-    proc.wait()
 
-    reward_img = f"{PLOTS_DIR}/reward_curve.png" if os.path.exists(f"{PLOTS_DIR}/reward_curve.png") else None
-    ba_img = f"{PLOTS_DIR}/before_after.png" if os.path.exists(f"{PLOTS_DIR}/before_after.png") else None
+st.set_page_config(page_title="SecureReview Trainer", layout="wide")
+st.title("SecureReview — GRPO Trainer")
+st.markdown(
+    "Trains via GRPO on the live SecureReview environment.  \n"
+    "Reward comes from a graded environment — no static dataset."
+)
 
-    summary = ""
+done            = os.path.exists(DONE_FILE)
+log_present     = os.path.exists(LOG_FILE)
+training_alive  = is_training_alive()
+mid_run         = log_present and not done and (training_alive or not is_training_alive())
+# Resume detection: if log file exists and not marked done, treat as ongoing
+ongoing = log_present and not done
+
+if not ongoing and not done:
+    if st.button("▶  Run Training", type="primary"):
+        for p in (DONE_FILE, LOG_FILE, PID_FILE):
+            if os.path.exists(p):
+                try: os.remove(p)
+                except OSError: pass
+        threading.Thread(target=_run, daemon=True).start()
+        time.sleep(1)
+        st.rerun()
+
+elif ongoing:
+    if training_alive:
+        st.info("Training in progress. Page auto-refreshes every 10 s — safe to close your laptop.")
+    else:
+        st.warning(
+            "Training process not detected (container may have restarted). "
+            "If the log below has stopped growing, click **Restart Training**."
+        )
+
+    log_content = ""
+    if log_present:
+        with open(LOG_FILE) as f:
+            log_content = f.read()
+
+    st.text_area("Training Log", log_content, height=460)
+
+    col_a, col_b = st.columns(2)
+    if not training_alive:
+        if col_a.button("Restart Training (clears progress)"):
+            for p in (DONE_FILE, LOG_FILE, PID_FILE):
+                if os.path.exists(p):
+                    try: os.remove(p)
+                    except OSError: pass
+            threading.Thread(target=_run, daemon=True).start()
+            time.sleep(1)
+            st.rerun()
+
+    if training_alive:
+        time.sleep(10)
+        st.rerun()
+
+else:
+    st.success("Training complete!")
+
     if os.path.exists(RESULTS_FILE):
         with open(RESULTS_FILE) as f:
             r = json.load(f)
-        summary = (
-            f"**Baseline mean:** {r['baseline_mean']:.3f}\n\n"
-            f"**Trained mean:** {r['trained_mean']:.3f}\n\n"
-            f"**Improvement:** {r['improvement']:+.3f}"
-        )
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Baseline mean", f"{r['baseline_mean']:.3f}")
+        c2.metric("Trained mean",  f"{r['trained_mean']:.3f}")
+        c3.metric("Improvement",   f"{r['improvement']:+.3f}")
 
-    yield "\n".join(output), reward_img, ba_img, summary, gr.update(interactive=True)
+    col1, col2 = st.columns(2)
+    if os.path.exists(f"{PLOTS_DIR}/reward_curve.png"):
+        col1.image(f"{PLOTS_DIR}/reward_curve.png", caption="Reward Curve")
+    if os.path.exists(f"{PLOTS_DIR}/before_after.png"):
+        col2.image(f"{PLOTS_DIR}/before_after.png", caption="Before vs After")
 
+    if log_present:
+        with st.expander("Training log"):
+            with open(LOG_FILE) as f:
+                st.text(f.read())
 
-def start_training(btn_state):
-    yield (
-        "Starting training... this takes ~20 minutes on T4.\n",
-        None,
-        None,
-        "",
-        gr.update(interactive=False, value="Training in progress..."),
-    )
-    yield from run_training()
-
-
-with gr.Blocks(title="SecureReview GRPO Trainer", theme=gr.themes.Monochrome()) as demo:
-    gr.Markdown(
-        """# SecureReview — GRPO Training
-
-Trains `Qwen2.5-1.5B-Instruct` via GRPO on the [SecureReview](https://sam25kat-securereview.hf.space) environment.
-The model learns to identify security vulnerabilities in dependency files — reward comes from a live graded environment, not a static dataset.
-
-**Hardware:** T4 GPU · **Time:** ~20 min · **Steps:** 150"""
-    )
-
-    with gr.Row():
-        run_btn = gr.Button("▶  Run Training", variant="primary", scale=1)
-
-    with gr.Row():
-        log_box = gr.Textbox(
-            label="Training Log",
-            lines=30,
-            max_lines=60,
-            autoscroll=True,
-            interactive=False,
-            scale=2,
-        )
-        with gr.Column(scale=1):
-            summary_md = gr.Markdown(label="Results Summary")
-            reward_img = gr.Image(label="Reward Curve", type="filepath")
-            ba_img = gr.Image(label="Before vs After", type="filepath")
-
-    run_btn.click(
-        fn=start_training,
-        inputs=[run_btn],
-        outputs=[log_box, reward_img, ba_img, summary_md, run_btn],
-    )
-
-if __name__ == "__main__":
-    demo.launch()
+    if st.button("Reset & Run Again"):
+        for p in (DONE_FILE, LOG_FILE, PID_FILE):
+            if os.path.exists(p):
+                try: os.remove(p)
+                except OSError: pass
+        st.rerun()

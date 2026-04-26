@@ -1,0 +1,37 @@
+name: Deploy to Production
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to ECR
+        env:
+          AWS_ACCESS_KEY_ID: AKIAEXAMPLEFAKE12345
+          AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+        run: |
+          aws ecr get-login-password | docker login --username AWS --password-stdin 123456789.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build and push image
+        run: |
+          docker build -t app:${{ github.sha }} .
+          docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/app:${{ github.sha }}
+
+      - name: Deploy to production
+        env:
+          KUBECONFIG_DATA: ${{ secrets.PROD_KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG_DATA" | base64 -d > /tmp/kubeconfig
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f k8s/

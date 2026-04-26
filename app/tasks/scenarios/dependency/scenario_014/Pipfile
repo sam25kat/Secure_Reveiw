@@ -1,0 +1,9 @@
+[[source]]
+url = "https://pypi.org/simple"
+
+[packages]
+flask = "==3.0.0"
+gunicorn = "*"
+psycopg2-binary = "==2.9.9"
+celery = "==5.3.4"
+redis = "==5.0.1"

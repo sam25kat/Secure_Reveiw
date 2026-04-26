@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_015",
+  "description": "Terraform — analytics RDS + S3 export bucket. Identify misconfigurations before prod.",
+  "review_checklist": [
+    "Verify network exposure of database",
+    "Check encryption at rest",
+    "Identify hardcoded credentials",
+    "Verify backup and recovery posture",
+    "Check public bucket exposure"
+  ],
+  "ground_truth": [
+    {
+      "file": "main.tf",
+      "line": 22,
+      "rule_id": "IAC-002",
+      "severity": "critical",
+      "description": "Security group allows inbound 0.0.0.0/0 on port 5432 — Postgres reachable from the public internet",
+      "match_key": "aws_security_group.analytics_db|permissive_ingress",
+      "category": "permissive_security_group"
+    },
+    {
+      "file": "main.tf",
+      "line": 41,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "Hardcoded master password in Terraform — credential will leak via state file and VCS history",
+      "match_key": "aws_db_instance.analytics|hardcoded_password",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "main.tf",
+      "line": 42,
+      "rule_id": "IAC-001",
+      "severity": "critical",
+      "description": "publicly_accessible = true exposes the RDS instance to the public internet",
+      "match_key": "aws_db_instance.analytics|publicly_accessible",
+      "category": "public_access"
+    },
+    {
+      "file": "main.tf",
+      "line": 43,
+      "rule_id": "IAC-003",
+      "severity": "high",
+      "description": "storage_encrypted = false — analytics data sits unencrypted at rest",
+      "match_key": "aws_db_instance.analytics|encryption_disabled",
+      "category": "encryption_at_rest"
+    },
+    {
+      "file": "main.tf",
+      "line": 45,
+      "rule_id": "IAC-018",
+      "severity": "high",
+      "description": "backup_retention_period = 0 disables automated backups — no point-in-time recovery for prod data",
+      "match_key": "aws_db_instance.analytics|backups_disabled",
+      "category": "backups_disabled"
+    },
+    {
+      "file": "main.tf",
+      "line": 57,
+      "rule_id": "IAC-001",
+      "severity": "critical",
+      "description": "S3 bucket acl = public-read exposes analytics export data publicly",
+      "match_key": "aws_s3_bucket.analytics_exports|public_read",
+      "category": "public_access"
+    }
+  ],
+  "initial_files": [
+    "main.tf"
+  ],
+  "available_files": []
+}

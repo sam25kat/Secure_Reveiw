@@ -1,0 +1,78 @@
+{
+  "scenario_id": "dep_010",
+  "description": "LLM-suggested package list for an AI app. Several are hallucinated (do not exist on PyPI) \u2014 a known LLM coding failure mode that creates supply-chain attack opportunities.",
+  "review_checklist": [
+    "Verify each package exists on PyPI",
+    "Check for naming patterns that match LLM hallucination styles (real-prefix + generic-suffix)",
+    "Identify supply-chain hijack risk (squatters can register hallucinated names)"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 3,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated package: 'langchain-utils' does not exist on PyPI. This is a 'slopsquat' opportunity \u2014 an attacker can register the package name and any LLM-generated requirements.txt referencing it will install attacker-controlled code.",
+      "match_key": "langchain-utils",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 4,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated: 'streamlit-helpers' does not exist on PyPI. LLMs frequently hallucinate '<library>-helpers' or '<library>-utils' packages because such names are pattern-frequent in their training data.",
+      "match_key": "streamlit-helpers",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated: 'torch-helpers' does not exist. The genuine package is just 'torch'.",
+      "match_key": "torch-helpers",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-006",
+      "severity": "high",
+      "description": "Hallucinated: 'chromadb-client' does not exist on PyPI. The real package is just 'chromadb'.",
+      "match_key": "chromadb-client",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated: 'embedding-models' is generic enough to be plausible but does not correspond to any canonical package. Likely LLM hallucination based on the conceptual term.",
+      "match_key": "embedding-models",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 8,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated: 'vector-store' is a generic concept name; no canonical PyPI package by that name. Likely LLM hallucination.",
+      "match_key": "vector-store",
+      "category": "hallucinated_slopsquat"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 9,
+      "rule_id": "DEP-006",
+      "severity": "critical",
+      "description": "Hallucinated: 'ai-toolkit' is generic and does not correspond to a canonical package. LLM hallucination pattern.",
+      "match_key": "ai-toolkit",
+      "category": "hallucinated_slopsquat"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

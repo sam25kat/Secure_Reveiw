@@ -1,0 +1,71 @@
+{
+  "scenario_id": "iac_023",
+  "description": "Node.js production Dockerfile. Identify base image, secret, and exposure issues.",
+  "review_checklist": [
+    "Verify base image pinning",
+    "Identify hardcoded secrets",
+    "Check checksums on downloads",
+    "Identify unnecessary debug ports",
+    "Verify USER directive"
+  ],
+  "ground_truth": [
+    {
+      "file": "Dockerfile",
+      "line": 1,
+      "rule_id": "IAC-011",
+      "severity": "high",
+      "description": "FROM node:latest — non-deterministic base image, breaks reproducible builds",
+      "match_key": "FROM|image_latest_tag",
+      "category": "image_latest_tag"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 3,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "NPM_TOKEN hardcoded in image — anyone pulling image can publish to private npm registry",
+      "match_key": "ENV|npm_token_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 4,
+      "rule_id": "IAC-005",
+      "severity": "critical",
+      "description": "MONGODB_URI with admin credentials hardcoded in image — full DB access leak",
+      "match_key": "ENV|mongo_uri_hardcoded",
+      "category": "hardcoded_secret"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 6,
+      "rule_id": "IAC-014",
+      "severity": "high",
+      "description": "ADD downloads setup.sh from raw GitHub URL without checksum verification — supply-chain risk",
+      "match_key": "ADD|unverified_download",
+      "category": "unverified_download"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 16,
+      "rule_id": "IAC-042",
+      "severity": "high",
+      "description": "EXPOSE 9229 + node --inspect=0.0.0.0 exposes Node debugger — remote code execution surface",
+      "match_key": "EXPOSE|debugger_exposed",
+      "category": "debug_mode_enabled"
+    },
+    {
+      "file": "Dockerfile",
+      "line": 18,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "No USER directive — container runs as root, npm install --unsafe-perm reinforces this",
+      "match_key": "USER|missing_user_directive",
+      "category": "run_as_root"
+    }
+  ],
+  "initial_files": [
+    "Dockerfile"
+  ],
+  "available_files": []
+}

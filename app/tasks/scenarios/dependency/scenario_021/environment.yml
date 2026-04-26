@@ -1,0 +1,14 @@
+name: ml-env
+channels:
+  - defaults
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.11
+  - numpy=1.24
+  - scipy=1.10
+  - pytorch=2.0
+  - cudatoolkit=11.8
+  - pip:
+    - tensorflow==2.13.0
+    - keras-cv==0.7.0

@@ -1,0 +1,64 @@
+{
+  "scenario_id": "iac_011",
+  "description": "Kubernetes payments service \u2014 review namespace isolation, pod security, and exposure",
+  "review_checklist": [
+    "Verify resource limits on containers",
+    "Check for NetworkPolicy isolation in sensitive namespaces",
+    "Audit ServiceAccount token automount",
+    "Check Service exposure (LoadBalancer vs ClusterIP)",
+    "Verify TLS termination on user-facing services"
+  ],
+  "ground_truth": [
+    {
+      "file": "deployment.yaml",
+      "line": 14,
+      "rule_id": "IAC-021",
+      "severity": "high",
+      "description": "automountServiceAccountToken=true exposes API token in payments pod \u2014 attacker who compromises one pod gets cluster API access",
+      "match_key": "Deployment.payments-api|sa_token_automount",
+      "category": "service_account_token"
+    },
+    {
+      "file": "deployment.yaml",
+      "line": 15,
+      "rule_id": "IAC-022",
+      "severity": "high",
+      "description": "Container has no resources.limits \u2014 single bad request can exhaust node CPU/memory, kill other pods",
+      "match_key": "Deployment.payments-api|missing_resource_limits",
+      "category": "missing_resource_limits"
+    },
+    {
+      "file": "namespace.yaml",
+      "line": 1,
+      "rule_id": "IAC-023",
+      "severity": "high",
+      "description": "Sensitive namespace 'payments' has no NetworkPolicy \u2014 any pod in cluster can reach payments-api",
+      "match_key": "Namespace.payments|missing_network_policy",
+      "category": "missing_network_policy"
+    },
+    {
+      "file": "service.yaml",
+      "line": 7,
+      "rule_id": "IAC-024",
+      "severity": "critical",
+      "description": "Service type=LoadBalancer exposes payments API to public internet \u2014 should be ClusterIP behind ingress with WAF",
+      "match_key": "Service.payments-api|public_loadbalancer",
+      "category": "public_service_exposure"
+    },
+    {
+      "file": "service.yaml",
+      "line": 9,
+      "rule_id": "IAC-025",
+      "severity": "high",
+      "description": "Service routes plain HTTP port 80 to TLS port 8443 \u2014 TLS terminated at LoadBalancer, traffic in cluster is plaintext",
+      "match_key": "Service.payments-api|plaintext_in_cluster",
+      "category": "missing_tls_in_cluster"
+    }
+  ],
+  "initial_files": [
+    "namespace.yaml",
+    "deployment.yaml",
+    "service.yaml"
+  ],
+  "available_files": []
+}

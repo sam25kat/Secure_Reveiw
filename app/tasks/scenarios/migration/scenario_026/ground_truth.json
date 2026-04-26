@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_026",
+  "description": "Stored procedure for inventory reservation. Application calls reserve_inventory() under READ COMMITTED isolation (default) and 6000 reservation requests/sec for hot SKUs. Review correctness and concurrency.",
+  "review_checklist": [
+    "Identify check-then-act race conditions under READ COMMITTED",
+    "Distinguish row-level locks needed (FOR UPDATE vs SHARE)",
+    "Audit isolation level interaction with the function",
+    "Consider optimistic vs pessimistic concurrency tradeoffs"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_026.sql",
+      "line": 8,
+      "rule_id": "MIG-310",
+      "severity": "critical",
+      "description": "Classic check-then-act race condition. Two concurrent calls for the same SKU can both read `available = 10`, both compare `available >= 5`, both UPDATE reserved = reserved + 5 \u2014 the second UPDATE is incrementally applied to the now-15 value, NOT serialized against the first's read. Result: oversold inventory. Fix: use SELECT ... FOR UPDATE on the inventory row to acquire a row-level lock for the duration of the transaction: `SELECT on_hand - reserved INTO available FROM inventory WHERE sku = p_sku FOR UPDATE;`",
+      "match_key": "check_then_act_race|reserve_inventory",
+      "category": "concurrency_check_then_act"
+    },
+    {
+      "file": "migration_026.sql",
+      "line": 4,
+      "rule_id": "MIG-311",
+      "severity": "high",
+      "description": "Function does not declare isolation. Under READ COMMITTED (default), the SELECT and UPDATE can read different snapshots even with FOR UPDATE \u2014 the UPDATE re-reads the row but the available variable from the SELECT may now be stale. Two safe options: (a) use SELECT FOR UPDATE + check available in the same statement: `UPDATE inventory SET reserved = reserved + p_qty WHERE sku = p_sku AND on_hand - reserved >= p_qty RETURNING ...`, or (b) request SERIALIZABLE isolation level explicitly.",
+      "match_key": "isolation_level_undeclared",
+      "category": "isolation_level"
+    },
+    {
+      "file": "migration_026.sql",
+      "line": 8,
+      "rule_id": "MIG-312",
+      "severity": "high",
+      "description": "FOR UPDATE on hot SKU rows serializes ALL concurrent reservations on that SKU. At 6000 reservations/sec for popular items (Black Friday concert tickets, limited drops), this becomes a queue. Alternative pattern: use SKIP LOCKED with reservation tokens (each reservation is a separate insertable row, no UPDATE on shared inventory state); or use CRDTs (G-Counter for reserved counts).",
+      "match_key": "for_update_hot_row_throughput",
+      "category": "hot_row_for_update"
+    },
+    {
+      "file": "migration_026.sql",
+      "line": 1,
+      "rule_id": "MIG-313",
+      "severity": "medium",
+      "description": "Function returns BOOLEAN with no information about WHY a reservation failed. For 'inventory full' vs 'sku not found' the caller has no way to distinguish. Return a structured result: `RETURNS TABLE(success BOOLEAN, reason VARCHAR)` or similar.",
+      "match_key": "function_return_information_loss",
+      "category": "function_observability"
+    },
+    {
+      "file": "schema.sql",
+      "line": 5,
+      "rule_id": "MIG-314",
+      "severity": "high",
+      "description": "Architectural pattern: optimistic concurrency via the existing `version` column is a better fit for this problem. The version column is already there but unused. Pattern: SELECT version, on_hand, reserved \u2192 check available \u2192 UPDATE inventory SET reserved=reserved+qty, version=version+1 WHERE sku=? AND version=?. If row count = 0, retry. No row locks, much higher throughput, well-suited to e-commerce reservation flows.",
+      "match_key": "design|optimistic_concurrency_unused",
+      "category": "concurrency_pattern_choice"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-315",
+      "severity": "medium",
+      "description": "Schema split: inventory should likely be partitioned by SKU bucket or shard to spread hot SKU load across multiple physical rows/partitions. For top-100 SKUs that get 80% of traffic (Pareto), maintain N replicas of the row (sku|bucket as PK), distribute reservation requests across buckets, sum at query time.",
+      "match_key": "design|sku_sharding_for_hot_inventory",
+      "category": "schema_sharding_for_hot_data"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_026.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

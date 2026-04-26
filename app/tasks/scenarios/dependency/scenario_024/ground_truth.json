@@ -1,0 +1,78 @@
+{
+  "scenario_id": "dep_024",
+  "description": "Stale pinned dependencies \u2014 every one has multiple security releases since",
+  "review_checklist": [
+    "Identify each package's release recency vs current",
+    "Spot the cumulative security debt",
+    "Recommend automated update strategy (Dependabot, Renovate)"
+  ],
+  "ground_truth": [
+    {
+      "file": "requirements.txt",
+      "line": 2,
+      "rule_id": "DEP-005",
+      "severity": "critical",
+      "description": "Django 3.2.0 has many CVEs since 2021: CVE-2021-44420 (SQL injection via QuerySet.annotate), CVE-2022-22818 (template injection), CVE-2023-43665 (DoS via Truncator). Patched in subsequent 3.2.x releases \u2014 but 3.2.x reached EOL April 2024. Upgrade to 4.2 LTS or 5.x.",
+      "match_key": "django==3.2.0",
+      "category": "known_cve"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "psycopg2 2.8.0 has multiple CVEs and lacks support for newer PG versions. Use psycopg2-binary 2.9.9+ or migrate to psycopg 3.x.",
+      "match_key": "psycopg2-binary==2.8",
+      "category": "known_cve"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 6,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "gunicorn 20.0.0 has CVE-2024-1135 (HTTP request smuggling). Patched in 22.0.0+.",
+      "match_key": "gunicorn==20.0",
+      "category": "known_cve"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 7,
+      "rule_id": "DEP-005",
+      "severity": "high",
+      "description": "gevent 20.6.0 has known issues with TLS handling on modern Python versions. Upgrade to 24.x.",
+      "match_key": "gevent==20.6",
+      "category": "outdated_severe"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 8,
+      "rule_id": "DEP-005",
+      "severity": "medium",
+      "description": "sentry-sdk 0.19.0 (2020) \u2014 modern is 2.x. Old SDK miss security context fixes and have known issues with redaction. Sentry's own deprecation notices explicitly call out 1.x and below.",
+      "match_key": "sentry-sdk==0.19",
+      "category": "outdated_severe"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 9,
+      "rule_id": "DEP-005",
+      "severity": "low",
+      "description": "prometheus-client 0.9.0 \u2014 current is 0.20+. Mostly cosmetic but newer releases improve label-key handling and async behavior.",
+      "match_key": "prometheus-client==0.9",
+      "category": "outdated"
+    },
+    {
+      "file": "requirements.txt",
+      "line": 1,
+      "rule_id": "DEP-025",
+      "severity": "high",
+      "description": "Architectural: pin-and-forget pattern with no automated update process is the root cause. Adopt Dependabot, Renovate, or pip-audit in CI; review and merge security PRs weekly. The cumulative security debt of stale dependencies dwarfs individual CVE fixes.",
+      "match_key": "no_update_strategy",
+      "category": "process_anti_pattern"
+    }
+  ],
+  "initial_files": [
+    "requirements.txt"
+  ],
+  "available_files": []
+}

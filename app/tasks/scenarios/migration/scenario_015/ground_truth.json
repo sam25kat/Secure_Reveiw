@@ -1,0 +1,73 @@
+{
+  "scenario_id": "migration_015",
+  "description": "Activities table at 1.83B rows is 14% from INTEGER overflow. The migration converts the PK and FK columns from INTEGER to BIGINT. Review the locking, replication, and operational implications.",
+  "review_checklist": [
+    "Quantify rewrite cost of ALTER COLUMN TYPE on a multi-billion row table",
+    "Identify staged migration patterns to avoid downtime",
+    "Check sequence object type and dependent indexes",
+    "Verify replication slot/wal volume implications"
+  ],
+  "ground_truth": [
+    {
+      "file": "migration_015.sql",
+      "line": 4,
+      "rule_id": "MIG-200",
+      "severity": "critical",
+      "description": "ALTER COLUMN TYPE on a 1.83B-row table forces a FULL TABLE REWRITE under AccessExclusiveLock. Estimated runtime: 8-15 hours during which the table is completely unavailable. This is the textbook 'never do this in production' migration. Correct pattern: (1) add new column id_bigint as BIGINT, (2) backfill in batches with COPY-style logic, (3) keep both columns in sync with triggers, (4) cut over with constraint swap, (5) drop old column.",
+      "match_key": "alter_column_type_table_rewrite|activities.id",
+      "category": "blocking_alter_type"
+    },
+    {
+      "file": "migration_015.sql",
+      "line": 4,
+      "rule_id": "MIG-201",
+      "severity": "critical",
+      "description": "Migration does NOT alter the underlying SEQUENCE \u2014 `activities_id_seq` is still type integer. After 'fixing' the column, INSERTs continue to fail at ~250M more inserts because nextval() returns integer. Required: ALTER SEQUENCE activities_id_seq AS BIGINT (PG 10+).",
+      "match_key": "sequence_type_not_altered|activities_id_seq",
+      "category": "incomplete_int_to_bigint_migration"
+    },
+    {
+      "file": "migration_015.sql",
+      "line": 6,
+      "rule_id": "MIG-202",
+      "severity": "critical",
+      "description": "ALTER COLUMN TYPE on activity_reactions.activity_id ALSO rewrites the table (estimated 800M rows, ~6 hours) AND must validate FK integrity against the activities rewrite. Sequenced after activities, this means consecutive multi-hour outages. Use staged backfill pattern instead.",
+      "match_key": "alter_column_type_table_rewrite|activity_reactions",
+      "category": "blocking_alter_type"
+    },
+    {
+      "file": "schema.sql",
+      "line": 4,
+      "rule_id": "MIG-203",
+      "severity": "high",
+      "description": "Architectural review: activities is the canonical example of a table that should have been BIGINT from day one. Capacity-planning rule: any table whose row count is bounded by user \u00d7 time should default to BIGINT. INTEGER is appropriate only for bounded enumerations (statuses, types). For all generated IDs use BIGINT.",
+      "match_key": "design|integer_pk_unbounded_table",
+      "category": "capacity_planning_pk"
+    },
+    {
+      "file": "schema.sql",
+      "line": 17,
+      "rule_id": "MIG-204",
+      "severity": "high",
+      "description": "activity_reactions.id is also SERIAL (INTEGER). This table is even larger writes-per-sec than activities \u2014 it will hit overflow before activities does. Same INTEGER \u2192 BIGINT migration needed here, surfacing same operational risk.",
+      "match_key": "integer_pk|activity_reactions.id",
+      "category": "capacity_planning_pk"
+    },
+    {
+      "file": "migration_015.sql",
+      "line": 1,
+      "rule_id": "MIG-205",
+      "severity": "medium",
+      "description": "WAL volume during ALTER TYPE is enormous \u2014 full row rewrite logs every row twice (delete + insert). For a 1.83B-row table this can produce 200-400GB of WAL, risking replication slot disk exhaustion and replica out-of-sync. Coordinate with infra team on WAL retention, replica disk space, and consider pausing logical replication slots.",
+      "match_key": "wal_volume|alter_type",
+      "category": "wal_replication_risk"
+    }
+  ],
+  "initial_files": [
+    "schema.sql",
+    "migration_015.sql"
+  ],
+  "available_files": [
+    "context.json"
+  ]
+}

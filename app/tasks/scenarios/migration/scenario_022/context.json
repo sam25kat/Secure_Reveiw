@@ -1,0 +1,19 @@
+{
+  "tables": {
+    "listings": {
+      "row_count": 600000000,
+      "writes_per_sec": 800
+    }
+  },
+  "data_distribution": {
+    "state": {
+      "active": 0.95,
+      "sold": 0.04,
+      "draft": 0.005,
+      "flagged": 0.005
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL 15.4"
+  }
+}

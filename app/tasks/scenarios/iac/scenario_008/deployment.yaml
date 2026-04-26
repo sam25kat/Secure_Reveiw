@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: app
+        image: company/webapp:latest
+        securityContext:
+          privileged: true
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+        env:
+        - name: DATABASE_PASSWORD
+          value: "supersecret123"
+        - name: API_KEY
+          value: "sk-prod-abc123def456"
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+        ports:
+        - containerPort: 8080
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+          type: Directory

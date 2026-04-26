@@ -1,0 +1,89 @@
+{
+  "scenario_id": "iac_019",
+  "description": "Kubernetes — debug Pod with elevated privileges. Identify pod-security violations.",
+  "review_checklist": [
+    "Identify host namespace sharing",
+    "Check privileged container flags",
+    "Verify root user usage",
+    "Check sensitive hostPath mounts",
+    "Verify service account token automounting"
+  ],
+  "ground_truth": [
+    {
+      "file": "pod.yaml",
+      "line": 7,
+      "rule_id": "IAC-033",
+      "severity": "critical",
+      "description": "hostNetwork: true — pod shares the node's network namespace, can sniff/spoof other pods",
+      "match_key": "Pod.debug-tools|host_network",
+      "category": "host_network"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 8,
+      "rule_id": "IAC-034",
+      "severity": "critical",
+      "description": "hostPID: true — pod can see and signal all host processes",
+      "match_key": "Pod.debug-tools|host_pid",
+      "category": "host_pid"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 12,
+      "rule_id": "IAC-011",
+      "severity": "high",
+      "description": "Container image uses :latest tag — non-deterministic deploys, no version pinning",
+      "match_key": "Pod.debug-tools|image_latest",
+      "category": "image_latest_tag"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 15,
+      "rule_id": "IAC-008",
+      "severity": "critical",
+      "description": "privileged: true — container has full access to host devices, equivalent to root on the node",
+      "match_key": "Pod.debug-tools|privileged_container",
+      "category": "privileged_container"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 16,
+      "rule_id": "IAC-009",
+      "severity": "high",
+      "description": "runAsUser: 0 — container runs as root inside the pod",
+      "match_key": "Pod.debug-tools|run_as_root",
+      "category": "run_as_root"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 25,
+      "rule_id": "IAC-010",
+      "severity": "critical",
+      "description": "hostPath mount of / gives container full read/write access to the node's filesystem — host takeover",
+      "match_key": "Pod.debug-tools|hostpath_root",
+      "category": "host_path_mount"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 28,
+      "rule_id": "IAC-010",
+      "severity": "critical",
+      "description": "hostPath mount of /var/run/docker.sock gives container control over Docker daemon — full node compromise",
+      "match_key": "Pod.debug-tools|hostpath_docker_sock",
+      "category": "host_path_mount"
+    },
+    {
+      "file": "pod.yaml",
+      "line": 31,
+      "rule_id": "IAC-035",
+      "severity": "medium",
+      "description": "automountServiceAccountToken: true — privileged pod gets default SA token, expands blast radius",
+      "match_key": "Pod.debug-tools|service_account_token",
+      "category": "service_account_token"
+    }
+  ],
+  "initial_files": [
+    "pod.yaml"
+  ],
+  "available_files": []
+}

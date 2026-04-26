@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      containers:
+        - name: api
+          image: company/api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "postgres://admin:HardcodedPass2023@db.internal:5432/prod"
+            - name: STRIPE_SECRET
+              value: "sk_test_EXAMPLE_FAKE_KEY_FOR_TESTING"
+            - name: DEBUG
+              value: "true"
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: true

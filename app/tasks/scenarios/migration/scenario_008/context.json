@@ -1,0 +1,40 @@
+{
+  "tables": {
+    "accounts": {
+      "row_count": 8500000,
+      "writes_per_sec": 220,
+      "reads_per_sec": 11000
+    },
+    "payments": {
+      "row_count": 940000000,
+      "writes_per_sec": 380,
+      "reads_per_sec": 6500
+    },
+    "ledger_entries": {
+      "row_count": 1900000000,
+      "writes_per_sec": 760,
+      "reads_per_sec": 200
+    }
+  },
+  "infrastructure": {
+    "primary": "us-east-1",
+    "read_replicas": [
+      {
+        "region": "us-east-1",
+        "lag_p99_ms": 80
+      },
+      {
+        "region": "eu-west-1",
+        "lag_p99_ms": 350
+      }
+    ],
+    "replication": "async_streaming"
+  },
+  "compliance": {
+    "frameworks": [
+      "PCI-DSS",
+      "SOX"
+    ],
+    "audit_trail_required": true
+  }
+}
